@@ -70,6 +70,22 @@ export const updateRentalStatus = async (
             updatedAt: serverTimestamp(),
         };
 
+        // Initialize deliveryQC when status changes to 'delivered'
+        if (status === 'delivered' && (!currentRental.deliveryQC || currentRental.deliveryQC.status !== 'pending')) {
+            updateData.deliveryQC = {
+                status: 'pending',
+                deadline: Date.now() + 30 * 60 * 1000, // 30 minutes from now
+            };
+        }
+
+        // Initialize returnQC when status changes to 'return_delivered'
+        if (status === 'return_delivered' && (!currentRental.returnQC || currentRental.returnQC.status !== 'pending')) {
+            updateData.returnQC = {
+                status: 'pending',
+                deadline: Date.now() + 30 * 60 * 1000, // 30 minutes from now
+            };
+        }
+
         if (paymentDetails) {
             updateData['paymentDetails.razorpayPaymentId'] = paymentDetails.razorpayPaymentId;
             updateData['paymentDetails.razorpayOrderId'] = paymentDetails.razorpayOrderId;
@@ -245,10 +261,37 @@ export const updateCuratorProfile = async (
         const closetRef = doc(db, 'closets', curatorId);
         const closetSnap = await getDoc(closetRef);
 
+        // Helper function to remove undefined values from an object
+        const removeUndefined = (obj: Record<string, unknown>): Record<string, unknown> => {
+            const cleaned: Record<string, unknown> = {};
+            for (const [key, value] of Object.entries(obj)) {
+                if (value !== undefined) {
+                    cleaned[key] = value;
+                }
+            }
+            return cleaned;
+        };
+
+        // Clean socialLinks - convert undefined to empty string
+        const cleanedSocialLinks = profileData.socialLinks ? {
+            instagram: profileData.socialLinks.instagram || '',
+            pinterest: profileData.socialLinks.pinterest || '',
+            website: profileData.socialLinks.website || '',
+        } : undefined;
+
+        // Build clean update data
+        const cleanedData: Record<string, unknown> = {};
+        if (profileData.displayName !== undefined) cleanedData.displayName = profileData.displayName;
+        if (profileData.bio !== undefined) cleanedData.bio = profileData.bio;
+        if (profileData.mobileNumber !== undefined) cleanedData.mobileNumber = profileData.mobileNumber;
+        if (profileData.upiId !== undefined) cleanedData.upiId = profileData.upiId;
+        if (profileData.avatarUrl !== undefined) cleanedData.avatarUrl = profileData.avatarUrl;
+        if (cleanedSocialLinks !== undefined) cleanedData.socialLinks = cleanedSocialLinks;
+
         if (closetSnap.exists()) {
             // Update existing closet
             await updateDoc(closetRef, {
-                ...profileData,
+                ...cleanedData,
                 updatedAt: serverTimestamp(),
             });
         } else {
@@ -262,7 +305,11 @@ export const updateCuratorProfile = async (
                 avatarUrl: profileData.avatarUrl || '',
                 mobileNumber: profileData.mobileNumber || '',
                 upiId: profileData.upiId || '',
-                socialLinks: profileData.socialLinks || {},
+                socialLinks: cleanedSocialLinks || {
+                    instagram: '',
+                    pinterest: '',
+                    website: '',
+                },
                 isPublished: false,
                 stats: {
                     outfitsCount: 0,
@@ -938,5 +985,98 @@ export const getAllOutfits = async (): Promise<Outfit[]> => {
     } catch (error) {
         console.error('Error getting all outfits:', error);
         return [];
+    }
+};
+
+/**
+ * Delete a rental (admin)
+ */
+export const deleteRental = async (rentalId: string): Promise<void> => {
+    try {
+        const rentalRef = doc(db, 'rentals', rentalId);
+        await deleteDoc(rentalRef);
+    } catch (error) {
+        console.error('Error deleting rental:', error);
+        throw error;
+    }
+};
+
+/**
+ * Delete a closet (admin)
+ */
+export const deleteCloset = async (closetId: string): Promise<void> => {
+    try {
+        const closetRef = doc(db, 'closets', closetId);
+        await deleteDoc(closetRef);
+    } catch (error) {
+        console.error('Error deleting closet:', error);
+        throw error;
+    }
+};
+
+/**
+ * Update a closet (admin)
+ */
+export const updateCloset = async (
+    closetId: string,
+    data: Partial<Omit<Closet, 'id' | 'createdAt'>>
+): Promise<void> => {
+    try {
+        const closetRef = doc(db, 'closets', closetId);
+
+        // Remove undefined values
+        const cleanedData: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(data)) {
+            if (value !== undefined) {
+                cleanedData[key] = value;
+            }
+        }
+
+        await updateDoc(closetRef, {
+            ...cleanedData,
+            updatedAt: serverTimestamp(),
+        });
+    } catch (error) {
+        console.error('Error updating closet:', error);
+        throw error;
+    }
+};
+
+/**
+ * Update a specific timeline entry (admin)
+ */
+export const updateRentalTimeline = async (
+    rentalId: string,
+    timelineIndex: number,
+    updates: { note?: string; timestamp?: number }
+): Promise<void> => {
+    try {
+        const rentalRef = doc(db, 'rentals', rentalId);
+        const rentalSnap = await getDoc(rentalRef);
+
+        if (!rentalSnap.exists()) {
+            throw new Error('Rental not found');
+        }
+
+        const rental = rentalSnap.data() as Rental;
+        const timeline = [...rental.timeline];
+
+        if (timelineIndex < 0 || timelineIndex >= timeline.length) {
+            throw new Error('Invalid timeline index');
+        }
+
+        // Update the specific timeline entry
+        timeline[timelineIndex] = {
+            ...timeline[timelineIndex],
+            ...updates,
+        };
+
+        await updateDoc(rentalRef, {
+            timeline,
+            updatedAt: serverTimestamp(),
+        });
+    } catch (error) {
+        console.error('Error updating rental timeline:', error);
+        throw error;
     }
 };

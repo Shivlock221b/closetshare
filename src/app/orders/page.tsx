@@ -15,11 +15,14 @@ const STATUS_LABELS: Record<Rental['status'], string> = {
     paid: 'Payment Confirmed',
     accepted: 'Accepted',
     rejected: 'Rejected',
-    in_transit: 'In Transit',
+    shipped: 'Shipped',
+    delivered: 'Delivered',
     in_use: 'In Use',
-    returned: 'Returned',
+    return_shipped: 'Return Shipped',
+    return_delivered: 'Return Received',
     completed: 'Completed',
     cancelled: 'Cancelled',
+    disputed: 'Issue Reported',
 };
 
 const STATUS_COLORS: Record<Rental['status'], string> = {
@@ -27,11 +30,14 @@ const STATUS_COLORS: Record<Rental['status'], string> = {
     paid: '#3b82f6',
     accepted: '#10b981',
     rejected: '#ef4444',
-    in_transit: '#8b5cf6',
-    in_use: '#06b6d4',
-    returned: '#6366f1',
-    completed: '#22c55e',
+    shipped: '#8b5cf6',
+    delivered: '#06b6d4',
+    in_use: '#22c55e',
+    return_shipped: '#6366f1',
+    return_delivered: '#a855f7',
+    completed: '#16a34a',
     cancelled: '#6b7280',
+    disputed: '#dc2626',
 };
 
 export default function OrdersPage() {
@@ -125,7 +131,7 @@ export default function OrdersPage() {
     }
 
     // Separate active and past orders
-    const activeStatuses = ['requested', 'paid', 'accepted', 'in_transit', 'in_use'];
+    const activeStatuses = ['requested', 'paid', 'accepted', 'shipped', 'delivered', 'in_use', 'return_shipped', 'return_delivered'];
     const activeOrders = rentals.filter(r => activeStatuses.includes(r.status));
     const pastOrders = rentals.filter(r => !activeStatuses.includes(r.status));
 

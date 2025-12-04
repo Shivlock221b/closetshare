@@ -3,6 +3,8 @@
     padding-bottom: 100px;
     max-width: 800px;
     margin: 0 auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 .section {

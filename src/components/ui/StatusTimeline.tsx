@@ -12,22 +12,15 @@ const statusLabels: Record<RentalStatus, string> = {
     paid: 'Payment Confirmed',
     accepted: 'Accepted by Curator',
     rejected: 'Rejected',
-    in_transit: 'In Transit',
+    shipped: 'Shipped',
+    delivered: 'Delivered',
     in_use: 'In Use',
-    returned: 'Returned',
+    return_shipped: 'Return Shipped',
+    return_delivered: 'Return Received',
     completed: 'Completed',
     cancelled: 'Cancelled',
+    disputed: 'Issue Reported',
 };
-
-const statusOrder: RentalStatus[] = [
-    'requested',
-    'paid',
-    'accepted',
-    'in_transit',
-    'in_use',
-    'returned',
-    'completed',
-];
 
 export const StatusTimeline: React.FC<StatusTimelineProps> = ({ timeline, currentStatus }) => {
     const formatDate = (timestamp: number) => {
@@ -41,53 +34,45 @@ export const StatusTimeline: React.FC<StatusTimelineProps> = ({ timeline, curren
         });
     };
 
-    const getStatusIndex = (status: RentalStatus) => {
-        return statusOrder.indexOf(status);
-    };
-
-    const currentIndex = getStatusIndex(currentStatus);
+    // Display timeline entries in order they occurred (sorted by timestamp)
+    const sortedTimeline = [...timeline].sort((a, b) => a.timestamp - b.timestamp);
 
     return (
         <div className={styles.container}>
             <div className={styles.timeline}>
-                {statusOrder.map((status, index) => {
-                    const entry = timeline.find(t => t.status === status);
-                    const isCompleted = index <= currentIndex;
-                    const isCurrent = status === currentStatus;
+                {sortedTimeline.map((entry, index) => {
+                    const isLast = index === sortedTimeline.length - 1;
+                    const isCurrent = entry.status === currentStatus;
 
                     return (
-                        <div key={status} className={styles.step}>
+                        <div key={`${entry.status}-${entry.timestamp}`} className={styles.step}>
                             <div className={styles.stepContent}>
                                 <div
-                                    className={`${styles.dot} ${isCompleted ? styles.dotCompleted : styles.dotPending
-                                        } ${isCurrent ? styles.dotCurrent : ''}`}
+                                    className={`${styles.dot} ${styles.dotCompleted} ${isCurrent ? styles.dotCurrent : ''}`}
                                 >
-                                    {isCompleted && (
-                                        <svg className={styles.checkIcon} viewBox="0 0 20 20" fill="currentColor">
-                                            <path
-                                                fillRule="evenodd"
-                                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                clipRule="evenodd"
-                                            />
-                                        </svg>
-                                    )}
+                                    <svg className={styles.checkIcon} viewBox="0 0 20 20" fill="currentColor">
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                            clipRule="evenodd"
+                                        />
+                                    </svg>
                                 </div>
-                                {index < statusOrder.length - 1 && (
-                                    <div
-                                        className={`${styles.line} ${isCompleted ? styles.lineCompleted : styles.linePending
-                                            }`}
-                                    />
+                                {!isLast && (
+                                    <div className={`${styles.line} ${styles.lineCompleted}`} />
                                 )}
                             </div>
 
                             <div className={styles.stepInfo}>
                                 <div className={`${styles.label} ${isCurrent ? styles.labelCurrent : ''}`}>
-                                    {statusLabels[status]}
+                                    {statusLabels[entry.status] || entry.status}
                                 </div>
-                                {entry && (
-                                    <div className={styles.timestamp}>{formatDate(entry.timestamp)}</div>
+                                <div className={styles.timestamp}>{formatDate(entry.timestamp)}</div>
+                                {entry.note && (
+                                    <div className={styles.note}>
+                                        <span className={styles.noteIcon}>💬</span> {entry.note}
+                                    </div>
                                 )}
-                                {entry?.note && <div className={styles.note}>{entry.note}</div>}
                             </div>
                         </div>
                     );

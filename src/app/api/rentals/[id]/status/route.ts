@@ -17,11 +17,14 @@ export async function PATCH(
             'paid',
             'accepted',
             'rejected',
-            'in_transit',
+            'shipped',
+            'delivered',
             'in_use',
-            'returned',
+            'return_shipped',
+            'return_delivered',
             'completed',
             'cancelled',
+            'disputed',
         ];
 
         if (status && !validStatuses.includes(status)) {

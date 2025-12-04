@@ -108,7 +108,18 @@
 .note {
     font-size: 14px;
     color: var(--color-text-secondary);
-    font-style: italic;
+    margin-top: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-cream);
+    border-left: 3px solid var(--color-coral);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+}
+
+.noteIcon {
+    flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
@@ -128,5 +139,10 @@
     .checkIcon {
         width: 14px;
         height: 14px;
+    }
+
+    .note {
+        font-size: 13px;
+        padding: var(--spacing-xs) var(--spacing-sm);
     }
 }

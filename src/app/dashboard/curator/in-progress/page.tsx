@@ -27,9 +27,9 @@ export default function InProgressPage() {
             try {
                 const rentalData = await getRentalsByCurator(user.id);
 
-                // Filter for in-progress rentals (accepted, in_transit, in_use)
+                // Filter for in-progress rentals
                 const inProgressRentals = rentalData.filter(r =>
-                    ['accepted', 'in_transit', 'in_use', 'returned'].includes(r.status)
+                    ['accepted', 'shipped', 'delivered', 'in_use', 'return_shipped', 'return_delivered'].includes(r.status)
                 );
 
                 // Fetch outfit details for each rental
@@ -55,9 +55,9 @@ export default function InProgressPage() {
 
     // Separate rentals by status
     const upcomingRentals = rentals.filter(r => r.rental.status === 'accepted');
-    const inTransitRentals = rentals.filter(r => r.rental.status === 'in_transit');
+    const shippedRentals = rentals.filter(r => r.rental.status === 'shipped' || r.rental.status === 'delivered');
     const activeRentals = rentals.filter(r => r.rental.status === 'in_use');
-    const returnedRentals = rentals.filter(r => r.rental.status === 'returned');
+    const returnRentals = rentals.filter(r => r.rental.status === 'return_shipped' || r.rental.status === 'return_delivered');
 
     if (authLoading || loading) {
         return (
@@ -110,13 +110,13 @@ export default function InProgressPage() {
                             </section>
                         )}
 
-                        {inTransitRentals.length > 0 && (
+                        {shippedRentals.length > 0 && (
                             <section className={styles.section}>
                                 <h2 className={styles.sectionTitle}>
-                                    In Transit ({inTransitRentals.length})
+                                    In Transit ({shippedRentals.length})
                                 </h2>
                                 <div className={styles.rentalsList}>
-                                    {inTransitRentals.map(({ rental, outfit }) => (
+                                    {shippedRentals.map(({ rental, outfit }) => (
                                         <RentalCard
                                             key={rental.id}
                                             rental={rental}
@@ -146,13 +146,13 @@ export default function InProgressPage() {
                             </section>
                         )}
 
-                        {returnedRentals.length > 0 && (
+                        {returnRentals.length > 0 && (
                             <section className={styles.section}>
                                 <h2 className={styles.sectionTitle}>
-                                    Returned - Pending Completion ({returnedRentals.length})
+                                    Being Returned ({returnRentals.length})
                                 </h2>
                                 <div className={styles.rentalsList}>
-                                    {returnedRentals.map(({ rental, outfit }) => (
+                                    {returnRentals.map(({ rental, outfit }) => (
                                         <RentalCard
                                             key={rental.id}
                                             rental={rental}
