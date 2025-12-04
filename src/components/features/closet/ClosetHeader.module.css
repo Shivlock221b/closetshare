@@ -1,0 +1,139 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-xl) var(--spacing-md);
+    background-color: var(--color-background);
+}
+
+.avatarWrapper {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: var(--spacing-md);
+    border: 4px solid var(--color-white);
+    box-shadow: var(--shadow-md);
+    position: relative;
+}
+
+.avatarWrapper.clickable {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.avatarWrapper.clickable:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-lg);
+}
+
+.avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatarPlaceholder {
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-family: var(--font-serif);
+}
+
+.instagramBadge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    border: 2px solid white;
+}
+
+.name {
+    font-family: var(--font-serif);
+    font-size: 2rem;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-lg);
+    text-align: center;
+}
+
+.name.clickable {
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.name.clickable:hover {
+    color: var(--color-coral);
+}
+
+.statsRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    width: 100%;
+    max-width: 400px;
+}
+
+.statItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.statValue {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text);
+    line-height: 1;
+    margin-bottom: var(--spacing-xs);
+}
+
+.statLabel {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.divider {
+    width: 1px;
+    height: 40px;
+    background-color: var(--color-border);
+}
+
+.curatorBtn {
+    min-width: 200px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    color: white;
+    border: none;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.curatorBtn:hover {
+    opacity: 0.9;
+}

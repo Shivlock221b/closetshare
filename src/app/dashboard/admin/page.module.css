@@ -1,0 +1,234 @@
+.container {
+    min-height: 100vh;
+    background-color: var(--color-background);
+}
+
+.content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-lg) var(--spacing-md);
+}
+
+.tabs {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+    border-bottom: 2px solid var(--color-border);
+    overflow-x: auto;
+}
+
+.tab {
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+    white-space: nowrap;
+}
+
+.tab:hover {
+    color: var(--color-primary);
+}
+
+.tabActive {
+    composes: tab;
+    color: var(--color-primary);
+    border-bottom: 2px solid var(--color-primary);
+    margin-bottom: -2px;
+}
+
+.section {
+    background-color: var(--color-white);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.table {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background-color: var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.tableHeader {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 1.5fr;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background-color: var(--color-background);
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.tableRow {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 1.5fr;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background-color: var(--color-white);
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.2s;
+}
+
+.tableRow:hover {
+    background-color: var(--color-cream);
+}
+
+.actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.badgeActive {
+    display: inline-block;
+    padding: 4px 12px;
+    background-color: rgba(76, 175, 80, 0.1);
+    color: var(--color-success);
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badgeArchived {
+    composes: badgeActive;
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--color-text-muted);
+}
+
+.statusBadge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.statCard {
+    background-color: var(--color-background);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    text-align: center;
+    position: relative;
+}
+
+.statIcon {
+    color: var(--color-coral);
+    margin-bottom: var(--spacing-sm);
+}
+
+.statValue {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.statLabel {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+}
+
+.alertSection {
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.alertSection h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: 14px;
+    color: #92400e;
+}
+
+.alertItem {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 13px;
+    margin: var(--spacing-xs) 0;
+}
+
+.alertBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    background: #dc2626;
+    color: white;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.outfitCell {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.thumbImg {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+}
+
+.issueHeading {
+    margin: var(--spacing-lg) 0 var(--spacing-md) 0;
+    font-size: 16px;
+}
+
+.emptyState {
+    padding: var(--spacing-xl);
+    text-align: center;
+    color: var(--color-text-secondary);
+}
+
+@media (max-width: 768px) {
+
+    .tableHeader,
+    .tableRow {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-xs);
+    }
+
+    .tableHeader {
+        display: none;
+    }
+
+    .tableRow>div:before {
+        content: attr(data-label);
+        font-weight: 600;
+        margin-right: var(--spacing-xs);
+    }
+}

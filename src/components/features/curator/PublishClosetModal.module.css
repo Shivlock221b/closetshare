@@ -1,0 +1,143 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--spacing-md);
+}
+
+.modal {
+    background: white;
+    border-radius: var(--radius-lg);
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-family: var(--font-serif);
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    font-size: 32px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.closeButton:hover {
+    background: var(--color-cream);
+}
+
+.description {
+    padding: var(--spacing-md) var(--spacing-lg);
+    color: var(--color-text-secondary);
+    margin: 0;
+    font-size: 14px;
+}
+
+.form {
+    padding: 0 var(--spacing-lg) var(--spacing-lg);
+}
+
+.field {
+    margin-bottom: var(--spacing-md);
+}
+
+.field label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: var(--spacing-xs);
+    font-size: 14px;
+}
+
+.required {
+    color: var(--color-coral);
+}
+
+.input,
+.textarea {
+    width: 100%;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    transition: border-color 0.2s;
+}
+
+.input:focus,
+.textarea:focus {
+    outline: none;
+    border-color: var(--color-coral);
+}
+
+.inputError {
+    border-color: #F44336;
+}
+
+.textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.error {
+    display: block;
+    color: #F44336;
+    font-size: 12px;
+    margin-top: var(--spacing-xs);
+}
+
+.hint {
+    display: block;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    margin-top: var(--spacing-xs);
+}
+
+.actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-lg);
+}
+
+.actions button {
+    flex: 1;
+}
+
+@media (max-width: 768px) {
+    .modal {
+        max-height: 95vh;
+    }
+
+    .header h2 {
+        font-size: 20px;
+    }
+}

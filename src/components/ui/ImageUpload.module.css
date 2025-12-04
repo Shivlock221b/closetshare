@@ -1,0 +1,109 @@
+.container {
+    width: 100%;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+}
+
+.imageCard {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--color-cream);
+    border: 2px solid var(--color-border);
+}
+
+.image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.removeButton {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.removeButton:hover {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.primaryBadge {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background: var(--color-coral);
+    color: white;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.addButton {
+    aspect-ratio: 1;
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    color: var(--color-text-secondary);
+    transition: all 0.2s;
+    padding: var(--spacing-md);
+}
+
+.addButton:hover {
+    border-color: var(--color-coral);
+    color: var(--color-coral);
+    background: rgba(255, 127, 106, 0.05);
+}
+
+.addIcon {
+    width: 32px;
+    height: 32px;
+}
+
+.count {
+    font-size: 12px;
+    color: var(--color-text-tertiary);
+}
+
+.hiddenInput {
+    display: none;
+}
+
+.hint {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: var(--spacing-sm);
+    }
+}

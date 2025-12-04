@@ -1,0 +1,132 @@
+.container {
+    width: 100%;
+    padding: var(--spacing-lg) 0;
+}
+
+.timeline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.step {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.stepContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    z-index: 1;
+    transition: all 0.3s;
+}
+
+.dotPending {
+    background: var(--color-cream);
+    border: 2px solid var(--color-border);
+}
+
+.dotCompleted {
+    background: var(--color-coral);
+    border: 2px solid var(--color-coral);
+    color: white;
+}
+
+.dotCurrent {
+    box-shadow: 0 0 0 4px rgba(255, 127, 106, 0.2);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 4px rgba(255, 127, 106, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 0 8px rgba(255, 127, 106, 0.1);
+    }
+}
+
+.checkIcon {
+    width: 16px;
+    height: 16px;
+}
+
+.line {
+    width: 2px;
+    flex: 1;
+    min-height: 40px;
+    margin-top: 4px;
+    transition: background 0.3s;
+}
+
+.linePending {
+    background: var(--color-border);
+}
+
+.lineCompleted {
+    background: var(--color-coral);
+}
+
+.stepInfo {
+    flex: 1;
+    padding-top: 4px;
+}
+
+.label {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--color-text);
+    margin-bottom: var(--spacing-xs);
+}
+
+.labelCurrent {
+    color: var(--color-coral);
+    font-weight: 600;
+}
+
+.timestamp {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.note {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .label {
+        font-size: 14px;
+    }
+
+    .timestamp {
+        font-size: 12px;
+    }
+
+    .dot {
+        width: 28px;
+        height: 28px;
+    }
+
+    .checkIcon {
+        width: 14px;
+        height: 14px;
+    }
+}

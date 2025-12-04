@@ -1,0 +1,128 @@
+.header {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    padding: var(--spacing-md) 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: var(--shadow-md);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.logoIcon {
+    position: relative;
+    width: 32px;
+    height: 20px;
+}
+
+.loop1,
+.loop2 {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--color-white);
+    border-radius: 50%;
+}
+
+.loop1 {
+    left: 0;
+}
+
+.loop2 {
+    left: 10px;
+}
+
+.nav {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.iconBtn {
+    color: var(--color-white);
+    padding: 4px;
+    transition: opacity 0.2s;
+}
+
+.iconBtn:hover {
+    opacity: 0.8;
+}
+
+.userMenu {
+    position: relative;
+}
+
+.userAvatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background-color: var(--color-white);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    min-width: 200px;
+    z-index: 100;
+    overflow: hidden;
+}
+
+.dropdownHeader {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.userName {
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 4px;
+}
+
+.userEmail {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+}
+
+.dropdownDivider {
+    height: 1px;
+    background-color: var(--color-border);
+}
+
+.dropdownItem {
+    width: 100%;
+    padding: var(--spacing-md);
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--color-text);
+    transition: background-color 0.2s;
+}
+
+.dropdownItem:hover {
+    background-color: var(--color-background);
+}
+
+.mainMenu {
+    position: relative;
+}

@@ -1,0 +1,54 @@
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-lg);
+}
+
+.header {
+    margin-bottom: var(--spacing-xl);
+}
+
+.header h1 {
+    font-family: var(--font-serif);
+    font-size: 32px;
+    margin: 0 0 var(--spacing-xs) 0;
+}
+
+.subtitle {
+    font-size: 16px;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.sectionTitle {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--color-text);
+}
+
+.rentalsList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.empty {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--color-text-secondary);
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: var(--spacing-md);
+    }
+
+    .header h1 {
+        font-size: 24px;
+    }
+}

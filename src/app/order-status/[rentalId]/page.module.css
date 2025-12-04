@@ -1,0 +1,314 @@
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: var(--spacing-lg);
+}
+
+.header {
+    margin-bottom: var(--spacing-xl);
+}
+
+.backButton {
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    padding: var(--spacing-sm) 0;
+    margin-bottom: var(--spacing-sm);
+    transition: color 0.2s;
+}
+
+.backButton:hover {
+    color: var(--color-coral);
+}
+
+.header h1 {
+    font-family: var(--font-serif);
+    font-size: 32px;
+    margin: 0 0 var(--spacing-xs) 0;
+}
+
+.orderId {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.sectionTitle {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 var(--spacing-md) 0;
+}
+
+.summaryCard {
+    display: flex;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+}
+
+.outfitImage {
+    width: 120px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+}
+
+.outfitImagePlaceholder {
+    width: 120px;
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-cream);
+    border-radius: var(--radius-md);
+    font-size: 48px;
+    flex-shrink: 0;
+}
+
+.summaryDetails {
+    flex: 1;
+}
+
+.outfitTitle {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 var(--spacing-md) 0;
+}
+
+.detailRow {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.detailRow:last-child {
+    border-bottom: none;
+}
+
+.detailRow span:first-child {
+    color: var(--color-text-secondary);
+}
+
+.amount {
+    font-weight: 600;
+    color: var(--color-coral);
+    font-size: 18px;
+}
+
+.trackingCard,
+.addressCard,
+.supportCard {
+    padding: var(--spacing-lg);
+    background: var(--color-cream);
+    border-radius: var(--radius-md);
+}
+
+.trackingRow {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-sm) 0;
+}
+
+.trackingRow span:first-child {
+    color: var(--color-text-secondary);
+    font-weight: 500;
+}
+
+.addressCard p {
+    margin: var(--spacing-xs) 0;
+}
+
+.addressName {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.supportCard p {
+    margin: 0 0 var(--spacing-md) 0;
+}
+
+.contactRow {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin: var(--spacing-sm) 0;
+}
+
+.contactRow a {
+    color: var(--color-coral);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.contactRow a:hover {
+    text-decoration: underline;
+}
+
+.actions {
+    display: flex;
+    justify-content: center;
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--color-border);
+}
+
+/* QC Section Styles */
+.qcSection {
+    margin-bottom: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    background: linear-gradient(135deg, #fff5f3 0%, #fff 100%);
+    border: 2px solid var(--color-coral);
+    border-radius: var(--radius-lg);
+}
+
+.qcHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.qcHeader h2 {
+    margin: 0;
+    font-size: 18px;
+    flex: 1;
+}
+
+.qcDeadline {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--color-coral);
+    background: white;
+    padding: 4px 8px;
+    border-radius: var(--radius-full);
+}
+
+.qcDescription {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--spacing-md) 0;
+}
+
+.qcActions {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.qcActions button {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.qcForm {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.qcLabel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.qcSelect {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    background: white;
+}
+
+.qcTextarea {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    min-height: 80px;
+    resize: vertical;
+}
+
+.qcStatus {
+    padding: var(--spacing-md);
+    background: var(--color-cream);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.qcStatus h3 {
+    font-size: 14px;
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--color-text-secondary);
+}
+
+.statusBadge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+}
+
+.statusBadge.approved {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.statusBadge.issue {
+    background: #fef9c3;
+    color: #854d0e;
+}
+
+.issueNote {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin: var(--spacing-sm) 0 0 0;
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: var(--spacing-md);
+    }
+
+    .header h1 {
+        font-size: 24px;
+    }
+
+    .summaryCard {
+        flex-direction: column;
+    }
+
+    .outfitImage {
+        width: 100%;
+        height: 200px;
+    }
+
+    .detailRow {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+
+    .trackingRow {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+
+    .qcActions {
+        flex-direction: column;
+    }
+}

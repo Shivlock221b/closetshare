@@ -1,0 +1,335 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { Header } from '@/components/layout/Header';
+import { ImageUpload } from '@/components/ui/ImageUpload';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+import { getOutfitById, updateOutfit } from '@/lib/firestore';
+import { uploadMultipleImages, getOutfitImagePath, deleteImage } from '@/lib/storage';
+import { Outfit } from '@/types';
+import styles from '../../add/page.module.css';
+
+export default function EditOutfitPage() {
+    const router = useRouter();
+    const params = useParams();
+    const { user } = useAuth();
+    const [loading, setLoading] = useState(false);
+    const [fetching, setFetching] = useState(true);
+    const [outfit, setOutfit] = useState<Outfit | null>(null);
+    const [newImages, setNewImages] = useState<File[]>([]);
+    const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+    const [formData, setFormData] = useState({
+        title: '',
+        description: '',
+        category: '',
+        size: '',
+        perNightPrice: '',
+        securityDeposit: '',
+        tags: '',
+    });
+
+    const outfitId = params.id as string;
+
+    useEffect(() => {
+        const fetchOutfit = async () => {
+            if (!outfitId) return;
+
+            try {
+                const data = await getOutfitById(outfitId);
+                if (data) {
+                    setOutfit(data);
+                    setExistingImageUrls(data.images);
+                    setFormData({
+                        title: data.title,
+                        description: data.description,
+                        category: data.category,
+                        size: data.size,
+                        perNightPrice: data.perNightPrice.toString(),
+                        securityDeposit: data.securityDeposit.toString(),
+                        tags: data.tags.join(', '),
+                    });
+                }
+            } catch (error) {
+                console.error('[EditOutfit] Error fetching outfit:', error);
+                alert('Failed to load outfit');
+                router.back();
+            } finally {
+                setFetching(false);
+            }
+        };
+
+        fetchOutfit();
+    }, [outfitId, router]);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!user || !outfit) {
+            alert('You must be signed in to edit an outfit');
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            let finalImageUrls = [...existingImageUrls];
+
+            // Upload new images if any
+            if (newImages.length > 0) {
+                const storagePath = getOutfitImagePath(user.id, outfitId);
+                const uploadedUrls = await uploadMultipleImages(newImages, storagePath);
+                finalImageUrls = [...finalImageUrls, ...uploadedUrls];
+            }
+
+            // Update outfit in Firestore
+            await updateOutfit(outfitId, {
+                title: formData.title,
+                description: formData.description,
+                images: finalImageUrls,
+                size: formData.size,
+                category: formData.category,
+                perNightPrice: parseFloat(formData.perNightPrice),
+                securityDeposit: parseFloat(formData.securityDeposit),
+                tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+            });
+
+            console.log('[EditOutfit] Outfit updated:', outfitId);
+            alert('Outfit updated successfully!');
+            router.push('/dashboard/curator/closet');
+        } catch (error) {
+            console.error('[EditOutfit] Error:', error);
+            alert('Failed to update outfit. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRemoveExistingImage = async (url: string, index: number) => {
+        try {
+            // Remove from local state
+            const newUrls = existingImageUrls.filter((_, i) => i !== index);
+            setExistingImageUrls(newUrls);
+
+            // Delete from Firebase Storage
+            await deleteImage(url);
+        } catch (error) {
+            console.error('[EditOutfit] Error removing image:', error);
+        }
+    };
+
+    if (fetching) {
+        return (
+            <main>
+                <Header />
+                <div className={styles.container}>
+                    <p>Loading...</p>
+                </div>
+            </main>
+        );
+    }
+
+    if (!outfit) {
+        return (
+            <main>
+                <Header />
+                <div className={styles.container}>
+                    <p>Outfit not found</p>
+                </div>
+            </main>
+        );
+    }
+
+    return (
+        <main>
+            <Header />
+            <div className={styles.container}>
+                <div className={styles.header}>
+                    <button onClick={() => router.back()} className={styles.backButton}>
+                        ← Back
+                    </button>
+                    <h1>Edit Outfit</h1>
+                </div>
+
+                <form onSubmit={handleSubmit} className={styles.form}>
+                    {/* Existing Images */}
+                    {existingImageUrls.length > 0 && (
+                        <div className={styles.section}>
+                            <label className={styles.sectionLabel}>Current Images</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '16px' }}>
+                                {existingImageUrls.map((url, index) => (
+                                    <div key={url} style={{ position: 'relative', aspectRatio: '1', borderRadius: '8px', overflow: 'hidden' }}>
+                                        <img src={url} alt={`Current ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveExistingImage(url, index)}
+                                            style={{
+                                                position: 'absolute',
+                                                top: '8px',
+                                                right: '8px',
+                                                width: '28px',
+                                                height: '28px',
+                                                borderRadius: '50%',
+                                                background: 'rgba(0,0,0,0.7)',
+                                                color: 'white',
+                                                border: 'none',
+                                                fontSize: '20px',
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Add New Images */}
+                    <div className={styles.section}>
+                        <label className={styles.sectionLabel}>Add New Images</label>
+                        <ImageUpload
+                            images={newImages}
+                            onImagesChange={setNewImages}
+                            maxImages={5 - existingImageUrls.length}
+                        />
+                    </div>
+
+                    {/* Basic Info */}
+                    <div className={styles.section}>
+                        <h2 className={styles.sectionLabel}>Basic Information</h2>
+                        <Input
+                            label="Title *"
+                            name="title"
+                            value={formData.title}
+                            onChange={handleInputChange}
+                            placeholder="e.g., Vintage Floral Maxi Dress"
+                            required
+                        />
+
+                        <div className={styles.field}>
+                            <label htmlFor="description">Description *</label>
+                            <textarea
+                                id="description"
+                                name="description"
+                                value={formData.description}
+                                onChange={handleInputChange}
+                                placeholder="Describe the outfit, occasion, styling tips..."
+                                required
+                                rows={4}
+                                className={styles.textarea}
+                            />
+                        </div>
+
+                        <div className={styles.row}>
+                            <div className={styles.field}>
+                                <label htmlFor="category">Category *</label>
+                                <select
+                                    id="category"
+                                    name="category"
+                                    value={formData.category}
+                                    onChange={handleInputChange}
+                                    required
+                                    className={styles.select}
+                                >
+                                    <option value="">Select category</option>
+                                    <option value="dress">Dress</option>
+                                    <option value="top">Top</option>
+                                    <option value="bottom">Bottom</option>
+                                    <option value="outerwear">Outerwear</option>
+                                    <option value="accessories">Accessories</option>
+                                    <option value="shoes">Shoes</option>
+                                    <option value="set">Complete Set</option>
+                                </select>
+                            </div>
+
+                            <div className={styles.field}>
+                                <label htmlFor="size">Size *</label>
+                                <select
+                                    id="size"
+                                    name="size"
+                                    value={formData.size}
+                                    onChange={handleInputChange}
+                                    required
+                                    className={styles.select}
+                                >
+                                    <option value="">Select size</option>
+                                    <option value="XS">XS</option>
+                                    <option value="S">S</option>
+                                    <option value="M">M</option>
+                                    <option value="L">L</option>
+                                    <option value="XL">XL</option>
+                                    <option value="XXL">XXL</option>
+                                    <option value="One Size">One Size</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <Input
+                            label="Tags (comma separated)"
+                            name="tags"
+                            value={formData.tags}
+                            onChange={handleInputChange}
+                            placeholder="e.g., vintage, floral, summer, boho"
+                        />
+                    </div>
+
+                    {/* Pricing */}
+                    <div className={styles.section}>
+                        <h2 className={styles.sectionLabel}>Pricing</h2>
+                        <div className={styles.row}>
+                            <Input
+                                label="Per Night Price (₹) *"
+                                name="perNightPrice"
+                                type="number"
+                                value={formData.perNightPrice}
+                                onChange={handleInputChange}
+                                placeholder="450"
+                                required
+                                min="0"
+                                step="1"
+                            />
+
+                            <Input
+                                label="Security Deposit (₹) *"
+                                name="securityDeposit"
+                                type="number"
+                                value={formData.securityDeposit}
+                                onChange={handleInputChange}
+                                placeholder="1000"
+                                required
+                                min="0"
+                                step="1"
+                            />
+                        </div>
+                        <p className={styles.hint}>
+                            You'll earn 85% of the rental fee. Platform fee is 15%.
+                        </p>
+                    </div>
+
+                    {/* Actions */}
+                    <div className={styles.actions}>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => router.back()}
+                            disabled={loading}
+                        >
+                            Cancel
+                        </Button>
+                        <Button type="submit" disabled={loading}>
+                            {loading ? 'Saving...' : 'Save Changes'}
+                        </Button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    );
+}

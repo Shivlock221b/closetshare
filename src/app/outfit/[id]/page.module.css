@@ -1,0 +1,216 @@
+.container {
+    padding-bottom: 100px;
+    /* Space for sticky CTA */
+}
+
+.loadingState,
+.errorState {
+    text-align: center;
+    padding: var(--spacing-2xl);
+}
+
+.errorState h1 {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    margin-bottom: var(--spacing-md);
+}
+
+.errorState p {
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-lg);
+}
+
+.hero {
+    width: 100%;
+    aspect-ratio: 3/4;
+    position: relative;
+    background-color: var(--color-border);
+}
+
+.heroImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.details {
+    padding: var(--spacing-md);
+    background-color: var(--color-background);
+}
+
+.title {
+    font-family: var(--font-serif);
+    font-size: 24px;
+    margin: 0 0 var(--spacing-md) 0;
+}
+
+.curatorRow {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    text-decoration: none;
+    color: inherit;
+}
+
+.curatorRow:hover .curatorName {
+    color: var(--color-coral);
+}
+
+.curatorAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.curatorName {
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.curatorLabel {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+}
+
+.priceRow {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.priceLabel {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+}
+
+.price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: var(--font-serif);
+}
+
+.description {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--color-text);
+    margin-bottom: var(--spacing-lg);
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+}
+
+.tag {
+    padding: 4px 12px;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+}
+
+.stickyCTA {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: var(--spacing-md);
+    background-color: var(--color-white);
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: center;
+    z-index: 100;
+}
+
+.ctaButton {
+    width: 100%;
+    max-width: 600px;
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    font-size: 1.125rem;
+}
+
+.ctaButtons {
+    display: flex;
+    gap: var(--spacing-sm);
+    width: 100%;
+    max-width: 600px;
+}
+
+.cartButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    min-width: 140px;
+}
+
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-lg);
+}
+
+.galleryImage {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+}
+
+.dateSection {
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--color-border);
+}
+
+.sectionTitle {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 var(--spacing-md) 0;
+}
+
+.policies {
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background: var(--color-cream);
+    border-radius: var(--radius-md);
+}
+
+.policiesTitle {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--color-text);
+}
+
+.policyList {
+    margin: 0;
+    padding-left: var(--spacing-md);
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+}
+
+.policyList li {
+    margin-bottom: var(--spacing-xs);
+}
+
+.policyList strong {
+    color: var(--color-text);
+}
+
+.ctaButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
