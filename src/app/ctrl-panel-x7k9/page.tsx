@@ -10,6 +10,7 @@ import {
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { ImageCarousel } from '@/components/ui/ImageCarousel';
 import {
     getAllRentals,
     getAllOutfits,
@@ -67,6 +68,7 @@ export default function AdminConsolePage() {
     // Edit state
     const [editMode, setEditMode] = useState<EditMode>(null);
     const [statusNote, setStatusNote] = useState('');
+    const [statusLink, setStatusLink] = useState('');
     const [selectedStatus, setSelectedStatus] = useState<RentalStatus | ''>('');
     const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -131,11 +133,17 @@ export default function AdminConsolePage() {
 
         setUpdatingId(rentalId);
         try {
-            await updateRentalStatus(rentalId, selectedStatus, statusNote || `Status changed to ${selectedStatus}`);
+            await updateRentalStatus(
+                rentalId,
+                selectedStatus,
+                statusNote || `Status changed to ${selectedStatus}`,
+                statusLink || undefined
+            );
             await fetchAllData();
             setEditMode(null);
             setSelectedStatus('');
             setStatusNote('');
+            setStatusLink('');
             alert('Status updated successfully!');
         } catch (error) {
             console.error('[Admin] Error updating status:', error);
@@ -460,6 +468,16 @@ export default function AdminConsolePage() {
                                                 onChange={(e) => setStatusNote(e.target.value)}
                                                 className={styles.noteInput}
                                             />
+                                        </div>
+                                        <div className={styles.editRow}>
+                                            <input
+                                                type="url"
+                                                placeholder="Add a link URL (optional, e.g. tracking link)"
+                                                value={statusLink}
+                                                onChange={(e) => setStatusLink(e.target.value)}
+                                                className={styles.noteInput}
+                                                style={{ flex: 1 }}
+                                            />
                                             <Button
                                                 size="sm"
                                                 onClick={() => handleStatusUpdate(rental.id)}
@@ -639,13 +657,67 @@ export default function AdminConsolePage() {
                             disputedRentals.map(rental => (
                                 <div key={rental.id} className={styles.issueCard}>
                                     <div className={styles.issueHeader}>
-                                        <strong>{getOutfitTitle(rental.outfitId)}</strong>
+                                        <div>
+                                            <strong>{getOutfitTitle(rental.outfitId)}</strong>
+                                            <span className={styles.issueBadge}>
+                                                {rental.issueReport?.category || 'Disputed'}
+                                            </span>
+                                        </div>
                                         <Link href={`/order-status/${rental.id}`} target="_blank">
                                             <Button size="sm">View Order</Button>
                                         </Link>
                                     </div>
-                                    <p>Renter: {rental.renterName}</p>
-                                    <p>Issue: {rental.deliveryQC?.issueDescription || rental.returnQC?.issueDescription || 'Disputed'}</p>
+
+                                    <div className={styles.issueDetails}>
+                                        <div className={styles.issueRow}>
+                                            <span className={styles.issueLabel}>Renter:</span>
+                                            <span>{rental.renterName} ({rental.renterEmail})</span>
+                                        </div>
+
+                                        {rental.issueReport ? (
+                                            <>
+                                                <div className={styles.issueRow}>
+                                                    <span className={styles.issueLabel}>Reporter:</span>
+                                                    <span>{rental.issueReport.reporterType === 'user' ? 'Renter' : 'Curator'}</span>
+                                                </div>
+                                                <div className={styles.issueRow}>
+                                                    <span className={styles.issueLabel}>Reported:</span>
+                                                    <span>{new Date(rental.issueReport.reportedAt).toLocaleString()}</span>
+                                                </div>
+                                                <div className={styles.issueDescription}>
+                                                    <span className={styles.issueLabel}>Description:</span>
+                                                    <p>{rental.issueReport.description}</p>
+                                                </div>
+
+                                                {rental.issueReport.imageUrls && rental.issueReport.imageUrls.length > 0 && (
+                                                    <div className={styles.issueImages}>
+                                                        <span className={styles.issueLabel}>Photos ({rental.issueReport.imageUrls.length}):</span>
+                                                        <div className={styles.carouselContainer}>
+                                                            <ImageCarousel
+                                                                images={rental.issueReport.imageUrls}
+                                                                alt={`Issue report for ${getOutfitTitle(rental.outfitId)}`}
+                                                                enableFullscreen={true}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <p>Issue: {rental.deliveryQC?.issueDescription || rental.returnQC?.issueDescription || 'No details available'}</p>
+                                        )}
+                                    </div>
+
+                                    <div className={styles.issueActions}>
+                                        <Button
+                                            size="sm"
+                                            onClick={() => {
+                                                setEditMode({ type: 'rental', id: rental.id });
+                                                setSelectedStatus(rental.status);
+                                            }}
+                                        >
+                                            <Edit size={14} /> Resolve Issue
+                                        </Button>
+                                    </div>
                                 </div>
                             ))
                         ) : (

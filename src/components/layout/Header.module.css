@@ -26,31 +26,23 @@
     font-weight: 700;
 }
 
-.logoIcon {
-    position: relative;
-    width: 32px;
-    height: 20px;
+.logoImage {
+    border-radius: 8px;
 }
 
-.loop1,
-.loop2 {
-    position: absolute;
-    width: 16px;
-    height: 16px;
-    border: 2px solid var(--color-white);
-    border-radius: 50%;
+.logoText {
+    display: none;
 }
 
-.loop1 {
-    left: 0;
-}
-
-.loop2 {
-    left: 10px;
+@media (min-width: 640px) {
+    .logoText {
+        display: inline;
+    }
 }
 
 .nav {
     display: flex;
+    align-items: center;
     gap: var(--spacing-md);
 }
 
@@ -58,21 +50,27 @@
     color: var(--color-white);
     padding: 4px;
     transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .iconBtn:hover {
     opacity: 0.8;
 }
 
-.userMenu {
-    position: relative;
+.avatarBtn {
+    padding: 2px;
+    border-radius: 50%;
+    transition: opacity 0.2s;
 }
 
-.userAvatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
+.avatarBtn:hover {
+    opacity: 0.8;
+}
+
+.userMenu {
+    position: relative;
 }
 
 .dropdown {
@@ -90,6 +88,13 @@
 .dropdownHeader {
     padding: var(--spacing-md);
     border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.userInfo {
+    flex: 1;
 }
 
 .userName {

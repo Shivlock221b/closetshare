@@ -43,7 +43,7 @@ export default function CartPage() {
     const calculateTotal = () => {
         return outfits.reduce((total, outfit) => {
             if (outfit) {
-                return total + outfit.perNightPrice * 3; // Default 3 nights
+                return total + outfit.perNightPrice; // Default 1 night
             }
             return total;
         }, 0);
@@ -68,7 +68,7 @@ export default function CartPage() {
                     <div className={styles.emptyCart}>
                         <h1>Your Cart is Empty</h1>
                         <p>Looks like you haven't added any outfits yet.</p>
-                        <Button onClick={() => router.push('/')}>Browse Closets</Button>
+                        <Button onClick={() => router.push('/closets')}>Browse Closets</Button>
                     </div>
                 </div>
             </main>
@@ -103,7 +103,7 @@ export default function CartPage() {
                                     <p className={styles.itemSize}>Size: {outfit.size}</p>
                                     <p className={styles.itemPrice}>₹{outfit.perNightPrice}/night</p>
                                     <p className={styles.itemSubtotal}>
-                                        3 nights = ₹{outfit.perNightPrice * 3}
+                                        1 night = ₹{outfit.perNightPrice}
                                     </p>
                                 </div>
                                 <button
@@ -127,13 +127,13 @@ export default function CartPage() {
                         <span>₹{outfits.filter(o => o).reduce((sum, o) => sum + (o?.securityDeposit || 0), 0)}</span>
                     </div>
                     <div className={styles.summaryRow}>
-                        <span>Platform Fee</span>
-                        <span>₹50</span>
+                        <span>Platform Fee (₹10/night)</span>
+                        <span>₹10</span>
                     </div>
                     <div className={styles.totalRow}>
                         <span>Total</span>
                         <span>
-                            ₹{calculateTotal() + outfits.filter(o => o).reduce((sum, o) => sum + (o?.securityDeposit || 0), 0) + 50}
+                            ₹{calculateTotal() + outfits.filter(o => o).reduce((sum, o) => sum + (o?.securityDeposit || 0), 0) + 10}
                         </span>
                     </div>
                 </div>

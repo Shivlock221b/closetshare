@@ -1,8 +1,12 @@
 :root {
   --color-primary: #FF7F6A;
   --color-primary-hover: #E66A55;
+  --color-coral: #FF7F6A;
+  --color-coral-dark: #E66A55;
   --color-background: #FEF5EC;
+  --color-surface: #FFFFFF;
   --color-text: #1A1A1A;
+  --color-text-secondary: #666666;
   --color-text-muted: #666666;
   --color-white: #FFFFFF;
   --color-border: #E5E5E5;
@@ -26,6 +30,7 @@
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
+  --spacing-2xl: 48px;
 }
 
 * {

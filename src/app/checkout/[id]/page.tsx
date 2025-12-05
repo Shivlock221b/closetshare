@@ -104,7 +104,7 @@ export default function CheckoutPage() {
             return;
         }
 
-        if (!formData.fullName || !formData.phone || !formData.address || !formData.city || !formData.zip) {
+        if (!formData.fullName || !formData.phone || !formData.address || !formData.city || !formData.state || !formData.zip) {
             alert('Please fill in all required fields');
             return;
         }
@@ -132,7 +132,7 @@ export default function CheckoutPage() {
                     phone: formData.phone,
                     addressLine1: formData.address,
                     city: formData.city,
-                    state: formData.state || 'Maharashtra',
+                    state: formData.state,
                     zipCode: formData.zip,
                 },
                 pricing: {
@@ -177,7 +177,7 @@ export default function CheckoutPage() {
 
                     if (verified) {
                         // Update rental status
-                        await updateRentalStatus(rentalId, 'paid', 'Payment completed', {
+                        await updateRentalStatus(rentalId, 'paid', 'Payment completed', undefined, {
                             razorpayPaymentId: response.razorpay_payment_id,
                             razorpayOrderId: response.razorpay_order_id,
                             razorpaySignature: response.razorpay_signature,
@@ -330,6 +330,14 @@ export default function CheckoutPage() {
                             label="Address *"
                             placeholder="123 Fashion St"
                             value={formData.address}
+                            onChange={handleInputChange}
+                            required
+                        />
+                        <Input
+                            id="state"
+                            label="State *"
+                            placeholder="Maharashtra"
+                            value={formData.state}
                             onChange={handleInputChange}
                             required
                         />

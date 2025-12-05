@@ -94,6 +94,60 @@
     margin: 0;
 }
 
+.depositField {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.depositField label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.depositValue {
+    padding: var(--spacing-sm);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-coral);
+}
+
+.depositHint {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+.commissionBanner {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: linear-gradient(135deg, #10b98115 0%, #06b6d415 100%);
+    border: 1px solid #10b981;
+    border-radius: var(--radius-md);
+    margin-top: var(--spacing-sm);
+}
+
+.commissionIcon {
+    font-size: 24px;
+}
+
+.commissionBanner strong {
+    display: block;
+    color: #10b981;
+    margin-bottom: 2px;
+}
+
+.commissionBanner span {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+}
+
 .actions {
     display: flex;
     gap: var(--spacing-md);

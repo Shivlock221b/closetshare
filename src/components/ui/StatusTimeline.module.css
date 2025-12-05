@@ -122,6 +122,32 @@
     flex-shrink: 0;
 }
 
+.dotDisputed {
+    background: var(--color-warning, #f59e0b);
+    border-color: var(--color-warning, #f59e0b);
+}
+
+.labelDisputed {
+    color: var(--color-warning, #f59e0b);
+    font-weight: 600;
+}
+
+.link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--color-coral);
+    font-size: 13px;
+    margin-top: var(--spacing-xs);
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.link:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
 @media (max-width: 768px) {
     .label {
         font-size: 14px;

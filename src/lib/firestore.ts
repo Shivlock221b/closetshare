@@ -13,7 +13,7 @@ import {
     Timestamp
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { Rental, Outfit, Closet, TimelineEntry } from '@/types';
+import { Rental, Outfit, Closet, TimelineEntry, RentalStatus } from '@/types';
 
 /**
  * Create a new rental in Firestore
@@ -41,6 +41,7 @@ export const updateRentalStatus = async (
     rentalId: string,
     status: Rental['status'],
     note?: string,
+    link?: string,
     paymentDetails?: {
         razorpayPaymentId?: string;
         razorpayOrderId?: string;
@@ -58,13 +59,15 @@ export const updateRentalStatus = async (
         const currentRental = rentalSnap.data() as Rental;
         const currentTimeline = currentRental.timeline || [];
 
+        // Build timeline entry without undefined values (Firebase doesn't accept undefined)
         const newTimelineEntry: TimelineEntry = {
             status,
             timestamp: Date.now(),
-            note,
         };
+        if (note) newTimelineEntry.note = note;
+        if (link) newTimelineEntry.link = link;
 
-        const updateData: any = {
+        const updateData: Record<string, unknown> = {
             status,
             timeline: [...currentTimeline, newTimelineEntry],
             updatedAt: serverTimestamp(),
@@ -250,6 +253,7 @@ export const updateCuratorProfile = async (
         mobileNumber?: string;
         upiId?: string;
         avatarUrl?: string;
+        slug?: string;
         socialLinks?: {
             instagram?: string;
             pinterest?: string;
@@ -286,6 +290,7 @@ export const updateCuratorProfile = async (
         if (profileData.mobileNumber !== undefined) cleanedData.mobileNumber = profileData.mobileNumber;
         if (profileData.upiId !== undefined) cleanedData.upiId = profileData.upiId;
         if (profileData.avatarUrl !== undefined) cleanedData.avatarUrl = profileData.avatarUrl;
+        if (profileData.slug !== undefined) cleanedData.slug = profileData.slug;
         if (cleanedSocialLinks !== undefined) cleanedData.socialLinks = cleanedSocialLinks;
 
         if (closetSnap.exists()) {
@@ -933,6 +938,94 @@ export const submitReturnQC = async (
         });
     } catch (error) {
         console.error('Error submitting return QC:', error);
+        throw error;
+    }
+};
+
+/**
+ * Submit an issue report (from user or curator)
+ */
+export const submitIssueReport = async (
+    rentalId: string,
+    reportData: {
+        reporterId: string;
+        reporterType: 'user' | 'curator';
+        category: string;
+        description: string;
+        imageUrls: string[];
+    }
+): Promise<void> => {
+    try {
+        const rentalRef = doc(db, 'rentals', rentalId);
+        const rentalSnap = await getDoc(rentalRef);
+
+        if (!rentalSnap.exists()) {
+            throw new Error('Rental not found');
+        }
+
+        const rental = rentalSnap.data() as Rental;
+        const reporterLabel = reportData.reporterType === 'user' ? 'User' : 'Curator';
+
+        await updateDoc(rentalRef, {
+            status: 'disputed',
+            issueReport: {
+                reporterId: reportData.reporterId,
+                reporterType: reportData.reporterType,
+                category: reportData.category,
+                description: reportData.description,
+                imageUrls: reportData.imageUrls,
+                reportedAt: Date.now(),
+            },
+            timeline: [...rental.timeline, {
+                status: 'disputed' as RentalStatus,
+                timestamp: Date.now(),
+                note: `${reporterLabel} reported an issue: ${reportData.category}. Under investigation.`
+            }],
+            updatedAt: serverTimestamp(),
+        });
+
+        console.log(`[Firestore] Issue report submitted for rental ${rentalId}`);
+    } catch (error) {
+        console.error('Error submitting issue report:', error);
+        throw error;
+    }
+};
+
+/**
+ * Resolve an issue report (admin only)
+ */
+export const resolveIssueReport = async (
+    rentalId: string,
+    resolution: {
+        newStatus: RentalStatus;
+        note: string;
+    }
+): Promise<void> => {
+    try {
+        const rentalRef = doc(db, 'rentals', rentalId);
+        const rentalSnap = await getDoc(rentalRef);
+
+        if (!rentalSnap.exists()) {
+            throw new Error('Rental not found');
+        }
+
+        const rental = rentalSnap.data() as Rental;
+
+        await updateDoc(rentalRef, {
+            status: resolution.newStatus,
+            'issueReport.resolvedAt': Date.now(),
+            'issueReport.resolutionNote': resolution.note,
+            timeline: [...rental.timeline, {
+                status: resolution.newStatus,
+                timestamp: Date.now(),
+                note: `Issue resolved: ${resolution.note}`
+            }],
+            updatedAt: serverTimestamp(),
+        });
+
+        console.log(`[Firestore] Issue resolved for rental ${rentalId}`);
+    } catch (error) {
+        console.error('Error resolving issue report:', error);
         throw error;
     }
 };

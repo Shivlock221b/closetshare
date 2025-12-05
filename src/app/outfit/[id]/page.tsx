@@ -3,11 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ShoppingBag, Check, AlertCircle } from 'lucide-react';
+import { AlertCircle, Check, ShoppingBag } from 'lucide-react';
 import styles from './page.module.css';
 import { Button } from '@/components/ui/Button';
 import { Header } from '@/components/layout/Header';
 import { DateRangePicker } from '@/components/ui/DateRangePicker';
+import { ImageCarousel } from '@/components/ui/ImageCarousel';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Avatar } from '@/components/ui/Avatar';
 import { getOutfitById, getClosetByCurator, getBlockedDates } from '@/lib/firestore';
 import { useCart } from '@/contexts/CartContext';
 import { Outfit, Closet } from '@/types';
@@ -82,7 +85,7 @@ export default function OutfitPage() {
             <main className={styles.container}>
                 <Header />
                 <div className={styles.loadingState}>
-                    <p>Loading outfit...</p>
+                    <LoadingSpinner size="lg" text="Loading outfit..." />
                 </div>
             </main>
         );
@@ -106,16 +109,16 @@ export default function OutfitPage() {
             <Header />
 
             <div className={styles.hero}>
-                <img src={outfit.images[0]} alt={outfit.title} className={styles.heroImage} />
+                <ImageCarousel images={outfit.images} alt={outfit.title} />
             </div>
 
             <div className={styles.details}>
                 {closet && (
                     <Link href={`/c/${closet.slug}`} className={styles.curatorRow}>
-                        <img
-                            src={closet.avatarUrl || 'https://via.placeholder.com/40'}
-                            alt={closet.displayName}
-                            className={styles.curatorAvatar}
+                        <Avatar
+                            src={closet.avatarUrl}
+                            name={closet.displayName}
+                            size="md"
                         />
                         <div>
                             <div className={styles.curatorName}>{closet.displayName}</div>
@@ -169,19 +172,6 @@ export default function OutfitPage() {
                         </li>
                     </ul>
                 </div>
-
-                {outfit.images.length > 1 && (
-                    <div className={styles.gallery}>
-                        {outfit.images.slice(1).map((img, idx) => (
-                            <img
-                                key={idx}
-                                src={img}
-                                alt={`${outfit.title} ${idx + 2}`}
-                                className={styles.galleryImage}
-                            />
-                        ))}
-                    </div>
-                )}
             </div>
 
             <div className={styles.stickyCTA}>

@@ -62,3 +62,38 @@
   font-size: 1.25rem;
   margin: 0 auto var(--spacing-md);
 }
+
+.callout {
+  background: linear-gradient(135deg, var(--color-coral) 0%, #FF9A8B 100%);
+  padding: var(--spacing-2xl) 0;
+  margin-top: var(--spacing-lg);
+}
+
+.calloutContent {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  color: white;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+.calloutContent h3 {
+  font-size: 1.5rem;
+  margin: 0 0 var(--spacing-xs) 0;
+  font-weight: 700;
+}
+
+.calloutContent p {
+  opacity: 0.95;
+  margin: 0;
+  font-size: 1rem;
+}
+
+@media (max-width: 640px) {
+  .calloutContent {
+    flex-direction: column;
+    text-align: center;
+  }
+}

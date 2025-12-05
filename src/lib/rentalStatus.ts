@@ -9,15 +9,18 @@ export const isValidStatusTransition = (
     newStatus: RentalStatus
 ): boolean => {
     const transitions: Record<RentalStatus, RentalStatus[]> = {
-        requested: ['accepted', 'rejected', 'cancelled'],
-        accepted: ['paid', 'cancelled'],
+        requested: ['paid', 'cancelled'],
+        paid: ['accepted', 'rejected', 'cancelled'],
+        accepted: ['shipped', 'cancelled'],
         rejected: [],
-        paid: ['in_transit', 'cancelled'],
-        in_transit: ['in_use', 'cancelled'],
-        in_use: ['returned', 'cancelled'],
-        returned: ['completed'],
+        shipped: ['delivered', 'cancelled'],
+        delivered: ['in_use', 'disputed', 'cancelled'],
+        in_use: ['return_shipped', 'disputed'],
+        return_shipped: ['return_delivered'],
+        return_delivered: ['completed', 'disputed'],
         completed: [],
         cancelled: [],
+        disputed: ['completed', 'cancelled'],
     };
 
     return transitions[currentStatus]?.includes(newStatus) || false;

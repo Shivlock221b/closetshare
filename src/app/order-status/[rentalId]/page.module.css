@@ -4,6 +4,13 @@
     padding: var(--spacing-lg);
 }
 
+.loadingState {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .header {
     margin-bottom: var(--spacing-xl);
 }

@@ -5,14 +5,17 @@ import { useParams, useRouter } from 'next/navigation';
 import { AlertCircle, CheckCircle, Clock, Package } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { StatusTimeline } from '@/components/ui/StatusTimeline';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Button } from '@/components/ui/Button';
+import { IssueReportForm, IssueReportData } from '@/components/ui/IssueReportForm';
 import { useAuth } from '@/contexts/AuthContext';
 import {
     getRentalById,
     getOutfitById,
     updateRentalStatus,
     submitDeliveryQC,
-    submitReturnQC
+    submitReturnQC,
+    submitIssueReport
 } from '@/lib/firestore';
 import { Rental, Outfit } from '@/types';
 import styles from './page.module.css';
@@ -27,22 +30,9 @@ export default function OrderStatusPage() {
     const [loading, setLoading] = useState(true);
     const [cancelling, setCancelling] = useState(false);
     const [submittingQC, setSubmittingQC] = useState(false);
+    const [showIssueForm, setShowIssueForm] = useState(false);
+    const [issueFormType, setIssueFormType] = useState<'delivery' | 'return'>('delivery');
 
-    // Delivery QC form state
-    const [deliveryQCData, setDeliveryQCData] = useState({
-        itemsReceived: true,
-        conditionOk: true,
-        sizeOk: true,
-        issueDescription: '',
-        returnRequested: false,
-    });
-
-    // Return QC form state (for curator)
-    const [returnQCData, setReturnQCData] = useState({
-        conditionOk: true,
-        damageLevel: 'none' as 'none' | 'minor' | 'major' | 'total',
-        issueDescription: '',
-    });
 
     const rentalId = params.rentalId as string;
 
@@ -91,15 +81,15 @@ export default function OrderStatusPage() {
         }
     };
 
-    const handleDeliveryQCSubmit = async (allOk: boolean) => {
+    const handleDeliveryQCSubmit = async (allOk: boolean, issueData?: IssueReportData) => {
         setSubmittingQC(true);
         try {
             await submitDeliveryQC(rentalId, {
-                itemsReceived: allOk ? true : deliveryQCData.itemsReceived,
-                conditionOk: allOk ? true : deliveryQCData.conditionOk,
-                sizeOk: allOk ? true : deliveryQCData.sizeOk,
-                issueDescription: allOk ? '' : deliveryQCData.issueDescription,
-                returnRequested: allOk ? false : deliveryQCData.returnRequested,
+                itemsReceived: allOk ? true : false,
+                conditionOk: allOk ? true : false,
+                sizeOk: allOk ? true : false,
+                issueDescription: allOk ? '' : issueData?.description || '',
+                returnRequested: allOk ? false : true,
             });
             await fetchData();
             alert(allOk ? 'Thank you for confirming!' : 'Issue reported. Our team will contact you shortly.');
@@ -111,14 +101,82 @@ export default function OrderStatusPage() {
         }
     };
 
+    const handleIssueReportSubmit = async (data: IssueReportData) => {
+        if (!user) {
+            alert('You must be logged in to report an issue.');
+            return;
+        }
+
+        setSubmittingQC(true);
+
+        try {
+            // Determine severity level for the note
+            const getSeverityLabel = (category: string): string => {
+                if (issueFormType === 'delivery') {
+                    if (category === 'damaged' || category === 'wrong_item') return 'Major';
+                    if (category === 'sizing' || category === 'quality') return 'Minor';
+                    return 'Minor';
+                } else {
+                    if (category === 'damaged' || category === 'missing_item') return 'Major';
+                    if (category === 'stains') return 'Minor';
+                    return 'Minor';
+                }
+            };
+
+            const severityLabel = getSeverityLabel(data.category);
+
+            // Always create an issue report for admin tracking
+            await submitIssueReport(rentalId, {
+                reporterId: user.id,
+                reporterType: issueFormType === 'delivery' ? 'user' : 'curator',
+                category: data.category,
+                description: `[${severityLabel} Issue] ${data.description}`,
+                imageUrls: data.imageUrls,
+            });
+
+            // Also update the appropriate QC data
+            if (issueFormType === 'delivery') {
+                await submitDeliveryQC(rentalId, {
+                    itemsReceived: false,
+                    conditionOk: false,
+                    sizeOk: false,
+                    issueDescription: data.description,
+                    returnRequested: true,
+                });
+            } else {
+                const damageLevel = data.category === 'damaged' ? 'major' :
+                                  data.category === 'stains' ? 'minor' :
+                                  data.category === 'missing_item' ? 'total' : 'minor';
+
+                await submitReturnQC(rentalId, {
+                    conditionOk: false,
+                    damageLevel: damageLevel as 'none' | 'minor' | 'major' | 'total',
+                    issueDescription: data.description,
+                });
+            }
+
+            await fetchData();
+            alert('Issue reported successfully. Our team will review and contact you shortly.');
+        } catch (error) {
+            console.error('[OrderStatus] Error submitting issue report:', error);
+            alert('Failed to submit issue. Please try again.');
+        } finally {
+            setSubmittingQC(false);
+        }
+
+        setShowIssueForm(false);
+    };
+
     const handleReturnQCSubmit = async () => {
         setSubmittingQC(true);
         try {
-            await submitReturnQC(rentalId, returnQCData);
+            await submitReturnQC(rentalId, {
+                conditionOk: true,
+                damageLevel: 'none',
+                issueDescription: '',
+            });
             await fetchData();
-            alert(returnQCData.damageLevel === 'none'
-                ? 'Return confirmed! Security deposit will be refunded.'
-                : 'Return confirmed. Issue noted.');
+            alert('Return confirmed! Security deposit will be refunded.');
         } catch (error) {
             console.error('[OrderStatus] Error submitting return QC:', error);
             alert('Failed to submit. Please try again.');
@@ -147,7 +205,9 @@ export default function OrderStatusPage() {
             <main>
                 <Header />
                 <div className={styles.container}>
-                    <p>Loading...</p>
+                    <div className={styles.loadingState}>
+                        <LoadingSpinner size="lg" text="Loading order..." />
+                    </div>
                 </div>
             </main>
         );
@@ -221,17 +281,8 @@ export default function OrderStatusPage() {
                             <Button
                                 variant="secondary"
                                 onClick={() => {
-                                    const desc = prompt('Please describe the issue:');
-                                    if (desc) {
-                                        setDeliveryQCData({
-                                            itemsReceived: false,
-                                            conditionOk: false,
-                                            sizeOk: false,
-                                            issueDescription: desc,
-                                            returnRequested: true,
-                                        });
-                                        handleDeliveryQCSubmit(false);
-                                    }
+                                    setIssueFormType('delivery');
+                                    setShowIssueForm(true);
                                 }}
                                 disabled={submittingQC}
                             >
@@ -260,44 +311,24 @@ export default function OrderStatusPage() {
                             Security deposit will be refunded if no damage is found.
                         </p>
 
-                        <div className={styles.qcForm}>
-                            <label className={styles.qcLabel}>
-                                Outfit Condition:
-                                <select
-                                    value={returnQCData.damageLevel}
-                                    onChange={(e) => setReturnQCData({
-                                        ...returnQCData,
-                                        damageLevel: e.target.value as typeof returnQCData.damageLevel,
-                                        conditionOk: e.target.value === 'none',
-                                    })}
-                                    className={styles.qcSelect}
-                                >
-                                    <option value="none">✅ Perfect - No damage</option>
-                                    <option value="minor">⚠️ Minor damage (stains, small tears)</option>
-                                    <option value="major">🚨 Major damage (needs repair)</option>
-                                    <option value="total">💔 Total loss (unusable)</option>
-                                </select>
-                            </label>
-
-                            {returnQCData.damageLevel !== 'none' && (
-                                <textarea
-                                    placeholder="Describe the damage..."
-                                    value={returnQCData.issueDescription}
-                                    onChange={(e) => setReturnQCData({
-                                        ...returnQCData,
-                                        issueDescription: e.target.value,
-                                    })}
-                                    className={styles.qcTextarea}
-                                />
-                            )}
-                        </div>
-
                         <div className={styles.qcActions}>
                             <Button
                                 onClick={handleReturnQCSubmit}
                                 disabled={submittingQC}
                             >
-                                {submittingQC ? 'Submitting...' : 'Confirm Return'}
+                                <CheckCircle size={16} />
+                                No Issues - Confirm Return
+                            </Button>
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    setIssueFormType('return');
+                                    setShowIssueForm(true);
+                                }}
+                                disabled={submittingQC}
+                            >
+                                <AlertCircle size={16} />
+                                Report Issue
                             </Button>
                         </div>
                     </section>
@@ -449,6 +480,16 @@ export default function OrderStatusPage() {
                             {cancelling ? 'Cancelling...' : 'Cancel Rental'}
                         </Button>
                     </div>
+                )}
+
+                {/* Issue Report Form Modal */}
+                {showIssueForm && (
+                    <IssueReportForm
+                        rentalId={rentalId}
+                        reporterType={issueFormType === 'delivery' ? 'user' : 'curator'}
+                        onSubmit={handleIssueReportSubmit}
+                        onCancel={() => setShowIssueForm(false)}
+                    />
                 )}
             </div>
         </main>

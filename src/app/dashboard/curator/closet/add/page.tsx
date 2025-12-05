@@ -28,7 +28,14 @@ export default function AddOutfitPage() {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        setFormData(prev => {
+            const updates: Record<string, string> = { [name]: value };
+            // Auto-sync security deposit to per night price
+            if (name === 'perNightPrice') {
+                updates.securityDeposit = value;
+            }
+            return { ...prev, ...updates };
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -207,21 +214,21 @@ export default function AddOutfitPage() {
                                 step="1"
                             />
 
-                            <Input
-                                label="Security Deposit (₹) *"
-                                name="securityDeposit"
-                                type="number"
-                                value={formData.securityDeposit}
-                                onChange={handleInputChange}
-                                placeholder="1000"
-                                required
-                                min="0"
-                                step="1"
-                            />
+                            <div className={styles.depositField}>
+                                <label>Security Deposit (₹)</label>
+                                <div className={styles.depositValue}>
+                                    ₹{formData.perNightPrice || '0'}
+                                </div>
+                                <p className={styles.depositHint}>Equal to 1 night's rent</p>
+                            </div>
                         </div>
-                        <p className={styles.hint}>
-                            You'll earn 85% of the rental fee. Platform fee is 15%.
-                        </p>
+                        <div className={styles.commissionBanner}>
+                            <span className={styles.commissionIcon}>🎉</span>
+                            <div>
+                                <strong>Zero Commission!</strong>
+                                <span>You keep 100% of your rental earnings</span>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Actions */}

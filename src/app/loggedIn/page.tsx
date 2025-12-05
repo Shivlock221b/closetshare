@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
-export default function LoggedInPage() {
+function LoggedInContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { user, loading } = useAuth();
@@ -35,5 +35,25 @@ export default function LoggedInPage() {
                 <p>Please wait while we redirect you.</p>
             </div>
         </div>
+    );
+}
+
+export default function LoggedInPage() {
+    return (
+        <Suspense fallback={
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '100vh',
+                backgroundColor: 'var(--color-background)'
+            }}>
+                <div style={{ textAlign: 'center' }}>
+                    <h2>Loading...</h2>
+                </div>
+            </div>
+        }>
+            <LoggedInContent />
+        </Suspense>
     );
 }

@@ -27,8 +27,10 @@ export default function ProfileSettingsPage() {
         instagram: '',
         pinterest: '',
         website: '',
+        slug: '',
     });
     const [avatarUrl, setAvatarUrl] = useState<string>('');
+    const [slugError, setSlugError] = useState<string>('');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -46,6 +48,7 @@ export default function ProfileSettingsPage() {
                         instagram: closetData.socialLinks?.instagram || '',
                         pinterest: closetData.socialLinks?.pinterest || '',
                         website: closetData.socialLinks?.website || '',
+                        slug: closetData.slug || '',
                     });
                     setAvatarUrl(closetData.avatarUrl || user.avatarUrl || '');
                 } else {
@@ -53,6 +56,7 @@ export default function ProfileSettingsPage() {
                     setFormData(prev => ({
                         ...prev,
                         displayName: user.displayName || '',
+                        slug: '',
                     }));
                     setAvatarUrl(user.avatarUrl || '');
                 }
@@ -69,7 +73,21 @@ export default function ProfileSettingsPage() {
     }, [user, authLoading]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setFormData({ ...formData, [e.target.id]: e.target.value });
+        const { id, value } = e.target;
+        setFormData(prev => {
+            const updates = { ...prev, [id]: value };
+            // If changing instagram and slug is empty, suggest instagram as slug
+            if (id === 'instagram' && !prev.slug) {
+                const handle = value.replace(/.*instagram\.com\//, '').replace(/\/.*/, '').replace('@', '');
+                if (handle) {
+                    updates.slug = handle.toLowerCase();
+                }
+            }
+            return updates;
+        });
+        if (id === 'slug') {
+            setSlugError('');
+        }
     };
 
     const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,6 +109,13 @@ export default function ProfileSettingsPage() {
     const handleSave = async () => {
         if (!user) return;
 
+        // Validate slug format
+        const slugRegex = /^[a-z0-9-_]+$/;
+        if (formData.slug && !slugRegex.test(formData.slug)) {
+            setSlugError('Slug can only contain lowercase letters, numbers, hyphens, and underscores');
+            return;
+        }
+
         setSaving(true);
         try {
             await updateCuratorProfile(user.id, {
@@ -99,6 +124,7 @@ export default function ProfileSettingsPage() {
                 mobileNumber: formData.mobileNumber,
                 upiId: formData.upiId,
                 avatarUrl: avatarUrl,
+                slug: formData.slug || undefined,
                 socialLinks: {
                     instagram: formData.instagram || undefined,
                     pinterest: formData.pinterest || undefined,
@@ -165,6 +191,30 @@ export default function ProfileSettingsPage() {
                                 {uploading ? 'Uploading...' : 'Change Photo'}
                             </label>
                         </div>
+                    </div>
+                </section>
+
+                <section className={styles.section}>
+                    <h2 className={styles.sectionTitle}>Your Closet URL</h2>
+                    <div className={styles.slugSection}>
+                        <div className={styles.slugInput}>
+                            <span className={styles.slugPrefix}>closetshare.in/c/</span>
+                            <Input
+                                id="slug"
+                                placeholder="your-username"
+                                value={formData.slug}
+                                onChange={handleInputChange}
+                            />
+                        </div>
+                        {slugError && <p className={styles.error}>{slugError}</p>}
+                        <p className={styles.hint}>
+                            This is your unique closet URL. Use lowercase letters, numbers, and hyphens only.
+                            {formData.instagram && !formData.slug && (
+                                <span className={styles.suggestion}>
+                                    Tip: Your Instagram handle will be used as default.
+                                </span>
+                            )}
+                        </p>
                     </div>
                 </section>
 

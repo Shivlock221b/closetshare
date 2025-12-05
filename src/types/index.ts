@@ -94,6 +94,18 @@ export interface TimelineEntry {
     status: RentalStatus;
     timestamp: number;
     note?: string;
+    link?: string; // Clickable URL for tracking, feedback forms, etc.
+}
+
+export interface IssueReport {
+    reporterId: string;
+    reporterType: 'user' | 'curator';
+    category: string;
+    description: string;
+    imageUrls: string[];
+    reportedAt: number;
+    resolvedAt?: number;
+    resolutionNote?: string;
 }
 
 export interface Rental {
@@ -142,6 +154,7 @@ export interface Rental {
     };
     deliveryQC?: DeliveryQC;
     returnQC?: ReturnQC;
+    issueReport?: IssueReport;
     timeline: TimelineEntry[];
     curatorEarnings: number; // rentalFee + securityDeposit (if not refunded due to damage)
     createdAt: number;
@@ -156,6 +169,7 @@ export interface Closet {
     bio?: string;
     avatarUrl?: string;
     isPublished: boolean;
+    status: 'pending' | 'approved' | 'rejected'; // For curator verification
     mobileNumber?: string;
     upiId?: string;
     socialLinks?: {
