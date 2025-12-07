@@ -20,6 +20,11 @@ interface RazorpayOptions {
         color: string;
     };
     handler: (response: RazorpayResponse) => void;
+    modal?: {
+        ondismiss?: () => void;
+        escape?: boolean;
+        backdropclose?: boolean;
+    };
 }
 
 interface RazorpayResponse {

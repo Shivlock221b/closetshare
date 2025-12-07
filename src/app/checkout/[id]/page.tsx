@@ -169,30 +169,64 @@ export default function CheckoutPage() {
                     color: '#FF7F6A',
                 },
                 handler: async (response) => {
-                    const verified = await verifyRazorpayPayment(
-                        response.razorpay_payment_id,
-                        response.razorpay_order_id,
-                        response.razorpay_signature
-                    );
+                    try {
+                        const verified = await verifyRazorpayPayment(
+                            response.razorpay_payment_id,
+                            response.razorpay_order_id,
+                            response.razorpay_signature
+                        );
 
-                    if (verified) {
-                        // Update rental status
-                        await updateRentalStatus(rentalId, 'paid', 'Payment completed', undefined, {
-                            razorpayPaymentId: response.razorpay_payment_id,
-                            razorpayOrderId: response.razorpay_order_id,
-                            razorpaySignature: response.razorpay_signature,
-                        });
+                        if (verified) {
+                            // Update rental status
+                            await updateRentalStatus(rentalId, 'paid', 'Payment completed', undefined, {
+                                razorpayPaymentId: response.razorpay_payment_id,
+                                razorpayOrderId: response.razorpay_order_id,
+                                razorpaySignature: response.razorpay_signature,
+                            });
 
-                        // Block dates for this outfit
-                        await blockDatesForRental(id, startDate.getTime(), endDate.getTime());
+                            // Block dates for this outfit
+                            await blockDatesForRental(id, startDate.getTime(), endDate.getTime());
 
-                        alert('Payment successful! Your rental request has been confirmed.');
-                        router.push(`/order-status/${rentalId}`);
-                    } else {
-                        alert('Payment verification failed. Please contact support.');
+                            alert('Payment successful! Your rental request has been confirmed.');
+                            router.push(`/order-status/${rentalId}`);
+                        } else {
+                            alert('Payment verification failed. Please contact support.');
+                            // Cancel the rental
+                            await updateRentalStatus(rentalId, 'cancelled', 'Payment verification failed');
+                        }
+                    } catch (error) {
+                        console.error('Payment handler error:', error);
+                        alert('An error occurred during payment processing. Please contact support.');
+                    } finally {
+                        setProcessingPayment(false);
                     }
+                },
+                modal: {
+                    ondismiss: async () => {
+                        console.log('Payment popup closed by user');
 
-                    setProcessingPayment(false);
+                        // Cancel the rental since payment was not completed
+                        try {
+                            await updateRentalStatus(rentalId, 'cancelled', 'Payment cancelled by user');
+                        } catch (error) {
+                            console.error('Error cancelling rental:', error);
+                        }
+
+                        // Reset UI state
+                        setProcessingPayment(false);
+
+                        // Show user-friendly message
+                        const shouldRetry = confirm(
+                            'Payment was cancelled. Would you like to try again?'
+                        );
+
+                        if (!shouldRetry) {
+                            // Redirect to outfit page
+                            router.push(`/outfit/${id}`);
+                        }
+                    },
+                    escape: true,
+                    backdropclose: true,
                 },
             });
         } catch (error) {

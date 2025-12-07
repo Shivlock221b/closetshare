@@ -24,6 +24,15 @@ export const metadata: Metadata = {
   description: "Your shared closet in the Cloud",
   keywords: ["fashion rental", "closet sharing", "outfit rental", "peer-to-peer fashion"],
   authors: [{ name: "ClosetShare.in" }],
+  icons: {
+    icon: [
+      { url: "/icon.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
