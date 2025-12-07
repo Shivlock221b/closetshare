@@ -5,6 +5,7 @@ import styles from './ClosetHeader.module.css';
 interface ClosetHeaderProps {
     curatorName: string;
     avatarUrl?: string;
+    bio?: string;
     stats: {
         outfits: number;
         rentals: number;
@@ -20,6 +21,7 @@ interface ClosetHeaderProps {
 export const ClosetHeader: React.FC<ClosetHeaderProps> = ({
     curatorName,
     avatarUrl,
+    bio,
     stats,
     socialLinks,
 }) => {
@@ -56,6 +58,8 @@ export const ClosetHeader: React.FC<ClosetHeaderProps> = ({
                 {curatorName}
             </h1>
 
+            {bio && <p className={styles.bio}>{bio}</p>}
+
             <div className={styles.statsRow}>
                 <div className={styles.statItem}>
                     <span className={styles.statValue}>{stats.outfits}</span>
@@ -68,7 +72,9 @@ export const ClosetHeader: React.FC<ClosetHeaderProps> = ({
                 </div>
                 <div className={styles.divider} />
                 <div className={styles.statItem}>
-                    <span className={styles.statValue}>{stats.rating}</span>
+                    <span className={styles.statValue}>
+                        ⭐ {stats.rating > 0 ? stats.rating.toFixed(1) : '5.0'}
+                    </span>
                     <span className={styles.statLabel}>RATING</span>
                 </div>
             </div>

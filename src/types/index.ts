@@ -108,6 +108,20 @@ export interface IssueReport {
     resolutionNote?: string;
 }
 
+export type RatingType = 'curator_rating' | 'user_rating';
+
+export interface Rating {
+    id: string;
+    rentalId: string;
+    ratingType: RatingType;
+    raterId: string;        // User who gave the rating
+    ratedUserId: string;    // User who received the rating
+    stars: number;          // 1-5
+    comment: string;        // Can be empty
+    createdAt: number;
+    isLocked: true;         // Always true - no editing allowed
+}
+
 export interface Rental {
     id: string;
     outfitId: string;

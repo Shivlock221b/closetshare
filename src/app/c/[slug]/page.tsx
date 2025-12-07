@@ -119,6 +119,7 @@ export default function ClosetPage() {
             <ClosetHeader
                 curatorName={closet.displayName}
                 avatarUrl={closet.avatarUrl}
+                bio={closet.bio}
                 stats={{
                     outfits: closet.stats.outfitsCount,
                     rentals: closet.stats.rentalsCount,

@@ -13,7 +13,7 @@ import {
     Timestamp
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { Rental, Outfit, Closet, TimelineEntry, RentalStatus } from '@/types';
+import { Rental, Outfit, Closet, TimelineEntry, RentalStatus, Rating } from '@/types';
 
 /**
  * Create a new rental in Firestore
@@ -1170,6 +1170,213 @@ export const updateRentalTimeline = async (
         });
     } catch (error) {
         console.error('Error updating rental timeline:', error);
+        throw error;
+    }
+};
+
+/**
+ * ============================================
+ * RATING FUNCTIONS
+ * ============================================
+ */
+
+/**
+ * Check if user has already rated this rental
+ */
+export const hasUserRatedRental = async (
+    rentalId: string,
+    raterId: string
+): Promise<boolean> => {
+    try {
+        const ratingsRef = collection(db, 'ratings');
+        const q = query(
+            ratingsRef,
+            where('rentalId', '==', rentalId),
+            where('raterId', '==', raterId)
+        );
+        const querySnapshot = await getDocs(q);
+        return !querySnapshot.empty;
+    } catch (error) {
+        console.error('Error checking if user rated rental:', error);
+        return false;
+    }
+};
+
+/**
+ * Get all curator ratings for a specific curator
+ */
+export const getRatingsForCurator = async (curatorId: string): Promise<Rating[]> => {
+    try {
+        const ratingsRef = collection(db, 'ratings');
+        const q = query(
+            ratingsRef,
+            where('ratedUserId', '==', curatorId),
+            where('ratingType', '==', 'curator_rating')
+        );
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        })) as Rating[];
+    } catch (error) {
+        console.error('Error getting curator ratings:', error);
+        return [];
+    }
+};
+
+/**
+ * Get all user ratings for a specific user (admin only)
+ */
+export const getRatingsForUser = async (userId: string): Promise<Rating[]> => {
+    try {
+        const ratingsRef = collection(db, 'ratings');
+        const q = query(
+            ratingsRef,
+            where('ratedUserId', '==', userId),
+            where('ratingType', '==', 'user_rating')
+        );
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        })) as Rating[];
+    } catch (error) {
+        console.error('Error getting user ratings:', error);
+        return [];
+    }
+};
+
+/**
+ * Get ratings for a specific rental (both curator and user ratings)
+ */
+export const getRatingsForRental = async (
+    rentalId: string
+): Promise<{ curatorRating?: Rating; userRating?: Rating }> => {
+    try {
+        const ratingsRef = collection(db, 'ratings');
+        const q = query(ratingsRef, where('rentalId', '==', rentalId));
+        const querySnapshot = await getDocs(q);
+
+        const result: { curatorRating?: Rating; userRating?: Rating } = {};
+
+        querySnapshot.docs.forEach(doc => {
+            const data = { id: doc.id, ...doc.data() } as Rating;
+            if (data.ratingType === 'curator_rating') {
+                result.curatorRating = data;
+            } else if (data.ratingType === 'user_rating') {
+                result.userRating = data;
+            }
+        });
+
+        return result;
+    } catch (error) {
+        console.error('Error getting ratings for rental:', error);
+        return {};
+    }
+};
+
+/**
+ * Recalculate average rating for a curator or user
+ * Internal helper function
+ */
+const recalculateRating = async (
+    userId: string,
+    ratingType: 'curator_rating' | 'user_rating'
+): Promise<void> => {
+    try {
+        const ratings = ratingType === 'curator_rating'
+            ? await getRatingsForCurator(userId)
+            : await getRatingsForUser(userId);
+
+        if (ratings.length === 0) {
+            return;
+        }
+
+        const average = ratings.reduce((sum, r) => sum + r.stars, 0) / ratings.length;
+
+        // Update the appropriate stats
+        if (ratingType === 'curator_rating') {
+            // Update closet rating
+            const closetRef = doc(db, 'closets', userId);
+            await updateDoc(closetRef, {
+                'stats.rating': Number(average.toFixed(1)),
+                updatedAt: serverTimestamp(),
+            });
+        } else {
+            // Update user rating (for admin view)
+            const userRef = doc(db, 'users', userId);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                await updateDoc(userRef, {
+                    'stats.rating': Number(average.toFixed(1)),
+                    updatedAt: serverTimestamp(),
+                });
+            }
+        }
+
+        console.log(`[Firestore] Updated ${ratingType} for user ${userId}: ${average.toFixed(1)}`);
+    } catch (error) {
+        console.error('Error recalculating rating:', error);
+        throw error;
+    }
+};
+
+/**
+ * Submit a rating for a completed rental
+ */
+export const submitRating = async (ratingData: {
+    rentalId: string;
+    ratingType: 'curator_rating' | 'user_rating';
+    raterId: string;
+    ratedUserId: string;
+    stars: number;
+    comment: string;
+}): Promise<string> => {
+    try {
+        // 1. Validate rental is completed
+        const rentalRef = doc(db, 'rentals', ratingData.rentalId);
+        const rentalSnap = await getDoc(rentalRef);
+
+        if (!rentalSnap.exists()) {
+            throw new Error('Rental not found');
+        }
+
+        const rental = rentalSnap.data();
+        if (rental.status !== 'completed') {
+            throw new Error('Can only rate completed rentals');
+        }
+
+        // 2. Check for duplicate rating
+        const alreadyRated = await hasUserRatedRental(ratingData.rentalId, ratingData.raterId);
+        if (alreadyRated) {
+            throw new Error('You have already rated this rental');
+        }
+
+        // 3. Validate stars
+        if (ratingData.stars < 1 || ratingData.stars > 5) {
+            throw new Error('Rating must be between 1 and 5 stars');
+        }
+
+        // 4. Create rating document
+        const ratingsRef = collection(db, 'ratings');
+        const docRef = await addDoc(ratingsRef, {
+            rentalId: ratingData.rentalId,
+            ratingType: ratingData.ratingType,
+            raterId: ratingData.raterId,
+            ratedUserId: ratingData.ratedUserId,
+            stars: ratingData.stars,
+            comment: ratingData.comment || '',
+            createdAt: Date.now(),
+            isLocked: true,
+        });
+
+        // 5. Recalculate average rating
+        await recalculateRating(ratingData.ratedUserId, ratingData.ratingType);
+
+        console.log(`[Firestore] Rating submitted: ${docRef.id}`);
+        return docRef.id;
+    } catch (error) {
+        console.error('Error submitting rating:', error);
         throw error;
     }
 };

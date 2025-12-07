@@ -8,6 +8,8 @@ import { StatusTimeline } from '@/components/ui/StatusTimeline';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Button } from '@/components/ui/Button';
 import { IssueReportForm, IssueReportData } from '@/components/ui/IssueReportForm';
+import { RatingForm } from '@/components/ui/RatingForm';
+import { RatingDisplay } from '@/components/ui/RatingDisplay';
 import { useAuth } from '@/contexts/AuthContext';
 import {
     getRentalById,
@@ -15,9 +17,11 @@ import {
     updateRentalStatus,
     submitDeliveryQC,
     submitReturnQC,
-    submitIssueReport
+    submitIssueReport,
+    getRatingsForRental,
+    submitRating
 } from '@/lib/firestore';
-import { Rental, Outfit } from '@/types';
+import { Rental, Outfit, Rating } from '@/types';
 import styles from './page.module.css';
 
 export default function OrderStatusPage() {
@@ -32,6 +36,8 @@ export default function OrderStatusPage() {
     const [submittingQC, setSubmittingQC] = useState(false);
     const [showIssueForm, setShowIssueForm] = useState(false);
     const [issueFormType, setIssueFormType] = useState<'delivery' | 'return'>('delivery');
+    const [curatorRating, setCuratorRating] = useState<Rating | null>(null);
+    const [userRating, setUserRating] = useState<Rating | null>(null);
 
 
     const rentalId = params.rentalId as string;
@@ -46,6 +52,17 @@ export default function OrderStatusPage() {
                     setOutfit(outfitData);
                 } catch (outfitError) {
                     console.warn('[OrderStatus] Could not fetch outfit:', outfitError);
+                }
+
+                // Fetch ratings if rental is completed
+                if (rentalData.status === 'completed') {
+                    try {
+                        const ratings = await getRatingsForRental(rentalId);
+                        setCuratorRating(ratings.curatorRating || null);
+                        setUserRating(ratings.userRating || null);
+                    } catch (ratingsError) {
+                        console.warn('[OrderStatus] Could not fetch ratings:', ratingsError);
+                    }
                 }
             }
         } catch (error) {
@@ -182,6 +199,46 @@ export default function OrderStatusPage() {
             alert('Failed to submit. Please try again.');
         } finally {
             setSubmittingQC(false);
+        }
+    };
+
+    const handleCuratorRatingSubmit = async (data: { stars: number; comment: string }) => {
+        try {
+            if (!rental || !user) return;
+
+            await submitRating({
+                rentalId,
+                ratingType: 'curator_rating',
+                raterId: user.id,
+                ratedUserId: rental.curatorId,
+                stars: data.stars,
+                comment: data.comment,
+            });
+            await fetchData();
+            alert('Thank you for your rating!');
+        } catch (error) {
+            console.error('[OrderStatus] Error submitting curator rating:', error);
+            throw error;
+        }
+    };
+
+    const handleUserRatingSubmit = async (data: { stars: number; comment: string }) => {
+        try {
+            if (!rental || !user) return;
+
+            await submitRating({
+                rentalId,
+                ratingType: 'user_rating',
+                raterId: user.id,
+                ratedUserId: rental.renterUserId,
+                stars: data.stars,
+                comment: data.comment,
+            });
+            await fetchData();
+            alert('Thank you for your rating!');
+        } catch (error) {
+            console.error('[OrderStatus] Error submitting user rating:', error);
+            throw error;
         }
     };
 
@@ -359,6 +416,51 @@ export default function OrderStatusPage() {
                             <p className={styles.issueNote}>Note: {rental.returnQC.issueDescription}</p>
                         )}
                     </section>
+                )}
+
+                {/* Rating Forms - Show only when rental is completed */}
+                {rental.status === 'completed' && (
+                    <>
+                        {/* Curator Rating (Renter rates Curator) */}
+                        {isRenter && !curatorRating && outfit && (
+                            <RatingForm
+                                rentalId={rentalId}
+                                ratingType="curator_rating"
+                                ratedUserId={rental.curatorId}
+                                ratedUserName={outfit.curatorId}
+                                onSubmit={handleCuratorRatingSubmit}
+                                onSkip={() => {}}
+                            />
+                        )}
+
+                        {/* Display submitted curator rating */}
+                        {isRenter && curatorRating && (
+                            <RatingDisplay
+                                rating={curatorRating}
+                                title="Your Rating for the Curator"
+                            />
+                        )}
+
+                        {/* User Rating (Curator rates Renter) */}
+                        {isCurator && !userRating && (
+                            <RatingForm
+                                rentalId={rentalId}
+                                ratingType="user_rating"
+                                ratedUserId={rental.renterUserId}
+                                ratedUserName={rental.renterName}
+                                onSubmit={handleUserRatingSubmit}
+                                onSkip={() => {}}
+                            />
+                        )}
+
+                        {/* Display submitted user rating */}
+                        {isCurator && userRating && (
+                            <RatingDisplay
+                                rating={userRating}
+                                title={`Your Rating for ${rental.renterName}`}
+                            />
+                        )}
+                    </>
                 )}
 
                 {/* Rental Summary */}

@@ -9,7 +9,8 @@ import {
     getAllRentals,
     getAllOutfits,
     getAllClosets,
-    updateRentalStatus
+    updateRentalStatus,
+    getRatingsForUser
 } from '@/lib/firestore';
 import { Rental, Outfit, Closet } from '@/types';
 import styles from './page.module.css';
@@ -38,6 +39,7 @@ export default function AdminDashboard() {
     const [closets, setClosets] = useState<Closet[]>([]);
     const [loading, setLoading] = useState(true);
     const [updatingId, setUpdatingId] = useState<string | null>(null);
+    const [userRatings, setUserRatings] = useState<Map<string, number>>(new Map());
 
     useEffect(() => {
         const fetchData = async () => {
@@ -60,6 +62,34 @@ export default function AdminDashboard() {
         };
         fetchData();
     }, []);
+
+    // Fetch user ratings for all curators
+    useEffect(() => {
+        const fetchUserRatings = async () => {
+            if (closets.length === 0) return;
+
+            const ratingsMap = new Map<string, number>();
+            for (const closet of closets) {
+                try {
+                    const ratings = await getRatingsForUser(closet.curatorId);
+                    if (ratings.length > 0) {
+                        const avg = ratings.reduce((sum, r) => sum + r.stars, 0) / ratings.length;
+                        ratingsMap.set(closet.curatorId, Number(avg.toFixed(1)));
+                    }
+                } catch (error) {
+                    console.error(`[Admin] Error fetching ratings for ${closet.curatorId}:`, error);
+                }
+            }
+            setUserRatings(ratingsMap);
+        };
+
+        fetchUserRatings();
+    }, [closets]);
+
+    const getUserRating = (curatorId: string): string => {
+        const rating = userRatings.get(curatorId);
+        return rating ? `⭐ ${rating}` : 'N/A';
+    };
 
     const handleStatusUpdate = async (rentalId: string, newStatus: Rental['status']) => {
         setUpdatingId(rentalId);
@@ -288,6 +318,8 @@ export default function AdminDashboard() {
                                 <div>Slug</div>
                                 <div>Outfits</div>
                                 <div>Rentals</div>
+                                <div>Rating</div>
+                                <div>User Rating</div>
                                 <div>Earnings</div>
                             </div>
                             {closets.map(closet => (
@@ -305,6 +337,8 @@ export default function AdminDashboard() {
                                     <div>/{closet.slug}</div>
                                     <div>{closet.stats.outfitsCount}</div>
                                     <div>{closet.stats.rentalsCount}</div>
+                                    <div>⭐ {closet.stats.rating > 0 ? closet.stats.rating.toFixed(1) : '5.0'}</div>
+                                    <div>{getUserRating(closet.curatorId)}</div>
                                     <div>₹{closet.stats.totalEarnings}</div>
                                 </Link>
                             ))}

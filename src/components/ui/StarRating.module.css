@@ -1,0 +1,41 @@
+.container {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.star {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.star:not(.readonly):hover {
+    transform: scale(1.1);
+}
+
+.star.readonly {
+    cursor: default;
+}
+
+.icon {
+    display: block;
+    transition: all 0.2s;
+}
+
+/* Size variants */
+.sm .icon {
+    width: 16px;
+    height: 16px;
+}
+
+.md .icon {
+    width: 24px;
+    height: 24px;
+}
+
+.lg .icon {
+    width: 32px;
+    height: 32px;
+}
