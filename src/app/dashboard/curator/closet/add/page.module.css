@@ -82,6 +82,13 @@
     min-height: 100px;
 }
 
+.charCount {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    text-align: right;
+    margin-top: var(--spacing-xs);
+}
+
 .row {
     display: grid;
     grid-template-columns: 1fr 1fr;

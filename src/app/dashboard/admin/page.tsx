@@ -10,12 +10,16 @@ import {
     getAllOutfits,
     getAllClosets,
     updateRentalStatus,
-    getRatingsForUser
+    getRatingsForUser,
+    getAllErrorLogs,
+    markErrorResolved,
+    deleteErrorLog,
+    type ErrorLog
 } from '@/lib/firestore';
 import { Rental, Outfit, Closet } from '@/types';
 import styles from './page.module.css';
 
-type Tab = 'overview' | 'outfits' | 'curators' | 'rentals' | 'issues';
+type Tab = 'overview' | 'outfits' | 'curators' | 'rentals' | 'issues' | 'errors';
 
 const STATUS_COLORS: Record<string, string> = {
     requested: '#f59e0b',
@@ -37,6 +41,7 @@ export default function AdminDashboard() {
     const [rentals, setRentals] = useState<Rental[]>([]);
     const [outfits, setOutfits] = useState<Outfit[]>([]);
     const [closets, setClosets] = useState<Closet[]>([]);
+    const [errorLogs, setErrorLogs] = useState<ErrorLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [updatingId, setUpdatingId] = useState<string | null>(null);
     const [userRatings, setUserRatings] = useState<Map<string, number>>(new Map());
@@ -44,16 +49,21 @@ export default function AdminDashboard() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [rentalsData, outfitsData, closetsData] = await Promise.all([
+                const [rentalsData, outfitsData, closetsData, errorLogsData] = await Promise.all([
                     getAllRentals(),
                     getAllOutfits(),
                     getAllClosets(),
+                    getAllErrorLogs(),
                 ]);
                 // Sort rentals by createdAt descending
                 rentalsData.sort((a, b) => b.createdAt - a.createdAt);
                 setRentals(rentalsData);
                 setOutfits(outfitsData);
                 setClosets(closetsData);
+
+                // Sort error logs by timestamp descending
+                errorLogsData.sort((a, b) => b.timestamp - a.timestamp);
+                setErrorLogs(errorLogsData);
             } catch (error) {
                 console.error('[Admin] Error fetching data:', error);
             } finally {
@@ -188,6 +198,12 @@ export default function AdminDashboard() {
                         onClick={() => setActiveTab('issues')}
                     >
                         Issues ({disputedRentals.length + qcPending.length})
+                    </button>
+                    <button
+                        className={activeTab === 'errors' ? styles.tabActive : styles.tab}
+                        onClick={() => setActiveTab('errors')}
+                    >
+                        Error Logs ({errorLogs.filter(e => !e.resolved).length})
                     </button>
                 </div>
 
@@ -488,6 +504,109 @@ export default function AdminDashboard() {
                         {disputedRentals.length === 0 && qcPending.length === 0 && (
                             <div className={styles.emptyState}>
                                 <p>✅ No issues! All rentals are running smoothly.</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Error Logs Tab */}
+                {activeTab === 'errors' && (
+                    <div className={styles.section}>
+                        <h2>Error Logs</h2>
+                        {errorLogs.length > 0 ? (
+                            <div className={styles.errorLogsContainer}>
+                                {errorLogs.map((error) => (
+                                    <div
+                                        key={error.id}
+                                        className={`${styles.errorLogCard} ${error.resolved ? styles.resolved : ''}`}
+                                        style={{
+                                            borderLeft: `4px solid ${
+                                                error.severity === 'critical' ? '#dc2626' :
+                                                error.severity === 'high' ? '#f59e0b' :
+                                                error.severity === 'medium' ? '#3b82f6' :
+                                                '#6b7280'
+                                            }`
+                                        }}
+                                    >
+                                        <div className={styles.errorLogHeader}>
+                                            <div>
+                                                <span className={styles.errorSeverity} style={{
+                                                    background: error.severity === 'critical' ? '#dc2626' :
+                                                               error.severity === 'high' ? '#f59e0b' :
+                                                               error.severity === 'medium' ? '#3b82f6' :
+                                                               '#6b7280'
+                                                }}>
+                                                    {error.severity.toUpperCase()}
+                                                </span>
+                                                <span className={styles.errorCategory}>{error.category}</span>
+                                                {error.resolved && (
+                                                    <span className={styles.resolvedBadge}>✓ Resolved</span>
+                                                )}
+                                            </div>
+                                            <div className={styles.errorTimestamp}>
+                                                {new Date(error.timestamp).toLocaleString()}
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.errorMessage}>{error.message}</div>
+
+                                        {error.route && (
+                                            <div className={styles.errorDetail}>
+                                                <strong>Route:</strong> {error.route}
+                                            </div>
+                                        )}
+
+                                        {error.userEmail && (
+                                            <div className={styles.errorDetail}>
+                                                <strong>User:</strong> {error.userEmail} ({error.userId})
+                                            </div>
+                                        )}
+
+                                        {error.stack && (
+                                            <details className={styles.errorStack}>
+                                                <summary>Stack Trace</summary>
+                                                <pre>{error.stack}</pre>
+                                            </details>
+                                        )}
+
+                                        {error.metadata && Object.keys(error.metadata).length > 0 && (
+                                            <details className={styles.errorMetadata}>
+                                                <summary>Additional Info</summary>
+                                                <pre>{JSON.stringify(error.metadata, null, 2)}</pre>
+                                            </details>
+                                        )}
+
+                                        <div className={styles.errorActions}>
+                                            <Button
+                                                size="small"
+                                                variant="secondary"
+                                                onClick={async () => {
+                                                    await markErrorResolved(error.id, !error.resolved);
+                                                    setErrorLogs(prev => prev.map(e =>
+                                                        e.id === error.id ? { ...e, resolved: !error.resolved } : e
+                                                    ));
+                                                }}
+                                            >
+                                                {error.resolved ? 'Mark Unresolved' : 'Mark Resolved'}
+                                            </Button>
+                                            <Button
+                                                size="small"
+                                                onClick={async () => {
+                                                    if (confirm('Delete this error log?')) {
+                                                        await deleteErrorLog(error.id);
+                                                        setErrorLogs(prev => prev.filter(e => e.id !== error.id));
+                                                    }
+                                                }}
+                                            >
+                                                Delete
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className={styles.emptyState}>
+                                <p>✅ No errors logged! Everything is working smoothly.</p>
                             </div>
                         )}
                     </div>

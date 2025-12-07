@@ -132,6 +132,13 @@
     border-color: var(--color-coral);
 }
 
+.charCount {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    text-align: right;
+    margin-top: var(--spacing-xs);
+}
+
 .hint {
     font-size: 13px;
     color: var(--color-text-secondary);

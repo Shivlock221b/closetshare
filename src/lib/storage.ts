@@ -1,4 +1,5 @@
 import { upload } from '@imagekit/next';
+import { auth } from './firebase';
 
 const IMAGEKIT_URL_ENDPOINT = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || 'https://ik.imagekit.io/closetshare';
 
@@ -15,10 +16,24 @@ export const uploadImage = async (
     fileName?: string
 ): Promise<string> => {
     try {
-        // Fetch auth parameters from our API route
-        const authResponse = await fetch('/api/imagekit-auth');
+        // Get current user's ID token
+        const user = auth.currentUser;
+        if (!user) {
+            throw new Error('User must be authenticated to upload images');
+        }
+
+        const idToken = await user.getIdToken();
+
+        // Fetch auth parameters from our API route with authentication
+        const authResponse = await fetch('/api/imagekit-auth', {
+            headers: {
+                'Authorization': `Bearer ${idToken}`,
+            },
+        });
+
         if (!authResponse.ok) {
-            throw new Error('Failed to get upload auth');
+            const errorData = await authResponse.json();
+            throw new Error(errorData.error || 'Failed to get upload auth');
         }
 
         const authParams = await authResponse.json();

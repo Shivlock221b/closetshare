@@ -27,7 +27,9 @@ export const ClosetHeader: React.FC<ClosetHeaderProps> = ({
 }) => {
     const handleCuratorClick = () => {
         if (socialLinks?.instagram) {
-            window.open(socialLinks.instagram, '_blank');
+            // Construct Instagram URL from username
+            const instagramUrl = `https://instagram.com/${socialLinks.instagram}`;
+            window.open(instagramUrl, '_blank');
         }
     };
 
@@ -35,26 +37,15 @@ export const ClosetHeader: React.FC<ClosetHeaderProps> = ({
 
     return (
         <div className={styles.container}>
-            <div
-                className={`${styles.avatarWrapper} ${hasInstagram ? styles.clickable : ''}`}
-                onClick={hasInstagram ? handleCuratorClick : undefined}
-            >
+            <div className={styles.avatarWrapper}>
                 {avatarUrl ? (
                     <img src={avatarUrl} alt={curatorName} className={styles.avatar} />
                 ) : (
                     <div className={styles.avatarPlaceholder}>{curatorName[0]}</div>
                 )}
-                {hasInstagram && (
-                    <div className={styles.instagramBadge}>
-                        <Instagram size={14} />
-                    </div>
-                )}
             </div>
 
-            <h1
-                className={`${styles.name} ${hasInstagram ? styles.clickable : ''}`}
-                onClick={hasInstagram ? handleCuratorClick : undefined}
-            >
+            <h1 className={styles.name}>
                 {curatorName}
             </h1>
 

@@ -97,6 +97,15 @@ export const updateRentalStatus = async (
 
         await updateDoc(rentalRef, updateData);
 
+        // Unblock dates when rental is cancelled or rejected
+        if (status === 'cancelled' || status === 'rejected') {
+            await unblockDatesForRental(
+                currentRental.outfitId,
+                currentRental.startDate,
+                currentRental.endDate
+            );
+        }
+
         // Update stats when rental is completed
         if (status === 'completed') {
             // Increment outfit rental count
@@ -851,6 +860,55 @@ export const blockDatesForRental = async (
 };
 
 /**
+ * Unblock dates for a cancelled or rejected rental
+ */
+export const unblockDatesForRental = async (
+    outfitId: string,
+    startDate: number,
+    endDate: number
+): Promise<void> => {
+    try {
+        const outfitRef = doc(db, 'outfits', outfitId);
+        const outfitSnap = await getDoc(outfitRef);
+
+        if (!outfitSnap.exists()) {
+            throw new Error('Outfit not found');
+        }
+
+        const outfit = outfitSnap.data() as Outfit;
+        const existingBlocked = outfit.availability?.blockedDates || [];
+
+        // Generate dates to unblock (including buffer day)
+        const datesToUnblock: number[] = [];
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        end.setDate(end.getDate() + 1); // Include buffer day
+
+        const current = new Date(start);
+        while (current <= end) {
+            const dateKey = new Date(current.getFullYear(), current.getMonth(), current.getDate()).getTime();
+            datesToUnblock.push(dateKey);
+            current.setDate(current.getDate() + 1);
+        }
+
+        // Remove dates from blocked list
+        const updatedBlocked = existingBlocked.filter(
+            blockedDate => !datesToUnblock.includes(blockedDate)
+        );
+
+        await updateDoc(outfitRef, {
+            'availability.blockedDates': updatedBlocked,
+            updatedAt: serverTimestamp(),
+        });
+
+        console.log(`[Firestore] Unblocked ${datesToUnblock.length} dates for outfit ${outfitId}`);
+    } catch (error) {
+        console.error('Error unblocking dates:', error);
+        throw error;
+    }
+};
+
+/**
  * Submit delivery QC (user confirms receipt)
  */
 export const submitDeliveryQC = async (
@@ -1288,11 +1346,10 @@ const recalculateRating = async (
             ? await getRatingsForCurator(userId)
             : await getRatingsForUser(userId);
 
-        if (ratings.length === 0) {
-            return;
-        }
-
-        const average = ratings.reduce((sum, r) => sum + r.stars, 0) / ratings.length;
+        // Calculate average, default to 0 if no ratings
+        const average = ratings.length > 0
+            ? ratings.reduce((sum, r) => sum + r.stars, 0) / ratings.length
+            : 0;
 
         // Update the appropriate stats
         if (ratingType === 'curator_rating') {
@@ -1377,6 +1434,73 @@ export const submitRating = async (ratingData: {
         return docRef.id;
     } catch (error) {
         console.error('Error submitting rating:', error);
+        throw error;
+    }
+};
+
+// ============================================================================
+// Error Logs
+// ============================================================================
+
+export interface ErrorLog {
+    id: string;
+    timestamp: number;
+    message: string;
+    stack?: string;
+    userId?: string;
+    userEmail?: string;
+    route?: string;
+    userAgent?: string;
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    category: 'runtime' | 'network' | 'payment' | 'auth' | 'data' | 'other';
+    metadata?: Record<string, any>;
+    resolved?: boolean;
+    createdAt?: any;
+}
+
+/**
+ * Get all error logs (admin only)
+ */
+export const getAllErrorLogs = async (): Promise<ErrorLog[]> => {
+    try {
+        const errorLogsRef = collection(db, 'errorLogs');
+        const snapshot = await getDocs(errorLogsRef);
+
+        return snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+        })) as ErrorLog[];
+    } catch (error) {
+        console.error('Error fetching error logs:', error);
+        throw error;
+    }
+};
+
+/**
+ * Mark an error log as resolved (admin only)
+ */
+export const markErrorResolved = async (errorId: string, resolved: boolean = true): Promise<void> => {
+    try {
+        const errorRef = doc(db, 'errorLogs', errorId);
+        await updateDoc(errorRef, {
+            resolved,
+            resolvedAt: resolved ? serverTimestamp() : null,
+        });
+    } catch (error) {
+        console.error('Error marking error as resolved:', error);
+        throw error;
+    }
+};
+
+/**
+ * Delete an error log (admin only)
+ */
+export const deleteErrorLog = async (errorId: string): Promise<void> => {
+    try {
+        const errorRef = doc(db, 'errorLogs', errorId);
+        await deleteDoc(errorRef);
+    } catch (error) {
+        console.error('Error deleting error log:', error);
         throw error;
     }
 };

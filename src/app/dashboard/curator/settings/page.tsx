@@ -76,10 +76,15 @@ export default function ProfileSettingsPage() {
         const { id, value } = e.target;
         setFormData(prev => {
             const updates = { ...prev, [id]: value };
-            // If changing instagram and slug is empty, suggest instagram as slug
-            if (id === 'instagram' && !prev.slug) {
-                const handle = value.replace(/.*instagram\.com\//, '').replace(/\/.*/, '').replace('@', '');
-                if (handle) {
+
+            // If changing instagram, normalize to username only
+            if (id === 'instagram') {
+                // Extract username from URL or remove @ symbol
+                const handle = value.replace(/.*instagram\.com\//, '').replace(/\/.*/, '').replace('@', '').trim();
+                updates.instagram = handle;
+
+                // If slug is empty, suggest instagram username as slug
+                if (!prev.slug && handle) {
                     updates.slug = handle.toLowerCase();
                 }
             }
@@ -108,6 +113,15 @@ export default function ProfileSettingsPage() {
 
     const handleSave = async () => {
         if (!user) return;
+
+        // Validate mobile number format (10-15 digits, may include +, spaces, hyphens, parentheses)
+        if (formData.mobileNumber) {
+            const phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,15}$/;
+            if (!phoneRegex.test(formData.mobileNumber)) {
+                alert('Please enter a valid mobile number (10-15 digits)');
+                return;
+            }
+        }
 
         // Validate slug format
         const slugRegex = /^[a-z0-9-_]+$/;
@@ -245,20 +259,29 @@ export default function ProfileSettingsPage() {
                             onChange={handleInputChange}
                             className={styles.textarea}
                             rows={3}
+                            maxLength={100}
                         />
+                        <div className={styles.charCount}>
+                            {formData.bio.length}/100 characters
+                        </div>
                     </div>
                 </section>
 
                 <section className={styles.section}>
                     <h2 className={styles.sectionTitle}>Social Links</h2>
                     <div className={styles.formGrid}>
-                        <Input
-                            id="instagram"
-                            label="Instagram"
-                            placeholder="https://instagram.com/yourhandle"
-                            value={formData.instagram}
-                            onChange={handleInputChange}
-                        />
+                        <div>
+                            <Input
+                                id="instagram"
+                                label="Instagram Username"
+                                placeholder="yourhandle"
+                                value={formData.instagram}
+                                onChange={handleInputChange}
+                            />
+                            <p className={styles.hint}>
+                                Enter just your username (e.g., fashionista) or paste your Instagram URL
+                            </p>
+                        </div>
                         <Input
                             id="pinterest"
                             label="Pinterest"

@@ -7,6 +7,8 @@ import { Header } from '@/components/layout/Header';
 import { ClosetHeader } from '@/components/features/closet/ClosetHeader';
 import { OutfitGrid } from '@/components/features/closet/OutfitGrid';
 import { Button } from '@/components/ui/Button';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { getClosetBySlug, getOutfitsByCurator } from '@/lib/firestore';
 import { Outfit, Closet } from '@/types';
 import styles from './page.module.css';
@@ -77,23 +79,24 @@ export default function ClosetPage() {
             <main>
                 <Header />
                 <div className={styles.container}>
-                    <p>Loading closet...</p>
+                    <LoadingSpinner size="lg" text="Loading closet..." />
                 </div>
             </main>
         );
     }
 
     if (error || !closet) {
+        const errorTitle = error === 'Closet not found' ? 'Closet Not Found' : 'Error Loading Closet';
+        const errorMessage = error || "The closet you're looking for doesn't exist or isn't available.";
+
         return (
             <main>
                 <Header />
-                <div className={styles.container}>
-                    <div className={styles.errorState}>
-                        <h1>{error || 'Closet not found'}</h1>
-                        <p>The closet you're looking for doesn't exist or isn't available.</p>
-                        <Button onClick={() => router.push('/')}>Go Home</Button>
-                    </div>
-                </div>
+                <ErrorState
+                    title={errorTitle}
+                    message={errorMessage}
+                    onRetry={() => window.location.reload()}
+                />
             </main>
         );
     }
@@ -121,7 +124,7 @@ export default function ClosetPage() {
                 avatarUrl={closet.avatarUrl}
                 bio={closet.bio}
                 stats={{
-                    outfits: closet.stats.outfitsCount,
+                    outfits: outfits.length, // Use actual active outfit count
                     rentals: closet.stats.rentalsCount,
                     rating: closet.stats.rating,
                 }}

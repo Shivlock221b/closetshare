@@ -214,6 +214,120 @@
     color: var(--color-text-secondary);
 }
 
+/* Error Logs */
+.errorLogsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.errorLogCard {
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+}
+
+.errorLogCard.resolved {
+    opacity: 0.6;
+    background: #f9fafb;
+}
+
+.errorLogHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+}
+
+.errorSeverity {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    margin-right: var(--spacing-xs);
+}
+
+.errorCategory {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--color-cream);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    margin-right: var(--spacing-xs);
+}
+
+.resolvedBadge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #10b981;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+}
+
+.errorTimestamp {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+}
+
+.errorMessage {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-text);
+}
+
+.errorDetail {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.errorStack,
+.errorMetadata {
+    margin: var(--spacing-sm) 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-sm);
+}
+
+.errorStack summary,
+.errorMetadata summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.errorStack pre,
+.errorMetadata pre {
+    margin-top: var(--spacing-xs);
+    padding: var(--spacing-sm);
+    background: #f9fafb;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.errorActions {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
 @media (max-width: 768px) {
 
     .tableHeader,
@@ -230,5 +344,18 @@
         content: attr(data-label);
         font-weight: 600;
         margin-right: var(--spacing-xs);
+    }
+
+    .errorLogHeader {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .errorActions {
+        width: 100%;
+    }
+
+    .errorActions button {
+        flex: 1;
     }
 }

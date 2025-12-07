@@ -77,6 +77,25 @@ export default function EditOutfitPage() {
             return;
         }
 
+        // Validate price
+        const price = parseFloat(formData.perNightPrice);
+        if (isNaN(price) || price <= 0) {
+            alert('Please enter a valid price greater than 0');
+            return;
+        }
+
+        if (price > 100000) {
+            alert('Price seems unusually high. Please verify.');
+            return;
+        }
+
+        // Validate security deposit
+        const deposit = parseFloat(formData.securityDeposit);
+        if (isNaN(deposit) || deposit < 0) {
+            alert('Please enter a valid security deposit (0 or greater)');
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -225,7 +244,11 @@ export default function EditOutfitPage() {
                                 required
                                 rows={4}
                                 className={styles.textarea}
+                                maxLength={500}
                             />
+                            <div className={styles.charCount}>
+                                {formData.description.length}/500 characters
+                            </div>
                         </div>
 
                         <div className={styles.row}>

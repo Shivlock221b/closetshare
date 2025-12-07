@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import styles from './DateRangePicker.module.css';
 
 interface DateRangePickerProps {
     blockedDates: number[]; // Array of blocked date timestamps
     onDateSelect: (startDate: Date, endDate: Date, nights: number) => void;
+    onDateClear?: () => void; // Optional callback when dates are cleared
     perNightPrice: number;
     minNights?: number;
 }
@@ -59,6 +60,7 @@ const calculateNights = (start: Date, end: Date): number => {
 export const DateRangePicker: React.FC<DateRangePickerProps> = ({
     blockedDates,
     onDateSelect,
+    onDateClear,
     perNightPrice,
     minNights = 1,
 }) => {
@@ -96,6 +98,21 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
     const handleDateClick = (date: Date) => {
         if (date < today) return;
         if (isDateBlocked(date, blockedDates)) return;
+
+        // If clicking on the start date again, clear selection
+        if (startDate && toDateKey(date) === toDateKey(startDate)) {
+            setStartDate(null);
+            setEndDate(null);
+            onDateClear?.(); // Notify parent
+            return;
+        }
+
+        // If clicking on the end date again, clear just the end date
+        if (endDate && toDateKey(date) === toDateKey(endDate)) {
+            setEndDate(null);
+            onDateClear?.(); // Notify parent
+            return;
+        }
 
         if (!startDate || (startDate && endDate)) {
             // Start new selection
@@ -151,6 +168,12 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
     const nextMonth = () => {
         setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+    };
+
+    const handleClearDates = () => {
+        setStartDate(null);
+        setEndDate(null);
+        onDateClear?.(); // Notify parent
     };
 
     // Calculate pricing
@@ -219,11 +242,20 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
             {startDate && endDate && (
                 <div className={styles.summary}>
-                    <div className={styles.dateRange}>
-                        <span>{startDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
-                        <span className={styles.arrow}>→</span>
-                        <span>{endDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
-                        <span className={styles.nights}>({nights} nights)</span>
+                    <div className={styles.summaryHeader}>
+                        <div className={styles.dateRange}>
+                            <span>{startDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                            <span className={styles.arrow}>→</span>
+                            <span>{endDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                            <span className={styles.nights}>({nights} nights)</span>
+                        </div>
+                        <button
+                            className={styles.clearBtn}
+                            onClick={handleClearDates}
+                            title="Clear dates"
+                        >
+                            <X size={16} />
+                        </button>
                     </div>
 
                     <div className={styles.priceBreakdown}>

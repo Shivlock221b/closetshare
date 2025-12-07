@@ -6,8 +6,10 @@ import styles from './page.module.css';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Header } from '@/components/layout/Header';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { useAuth } from '@/contexts/AuthContext';
 import { createRazorpayOrder, openRazorpayCheckout, verifyRazorpayPayment } from '@/lib/razorpay';
+import { logPaymentError } from '@/lib/errorLogger';
 import {
     createRental,
     updateRentalStatus,
@@ -109,6 +111,20 @@ export default function CheckoutPage() {
             return;
         }
 
+        // Validate phone number format (10-15 digits, may include +, spaces, hyphens, parentheses)
+        const phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,15}$/;
+        if (!phoneRegex.test(formData.phone)) {
+            alert('Please enter a valid phone number (10-15 digits)');
+            return;
+        }
+
+        // Validate Indian PIN code (6 digits)
+        const zipRegex = /^[1-9][0-9]{5}$/;
+        if (!zipRegex.test(formData.zip)) {
+            alert('Please enter a valid 6-digit PIN code');
+            return;
+        }
+
         setProcessingPayment(true);
 
         try {
@@ -193,10 +209,30 @@ export default function CheckoutPage() {
                             alert('Payment verification failed. Please contact support.');
                             // Cancel the rental
                             await updateRentalStatus(rentalId, 'cancelled', 'Payment verification failed');
+
+                            // Log payment verification failure
+                            await logPaymentError('Payment verification failed', user?.id, user?.email, {
+                                rentalId,
+                                outfitId: id,
+                                razorpayPaymentId: response.razorpay_payment_id,
+                                razorpayOrderId: response.razorpay_order_id,
+                            });
                         }
                     } catch (error) {
                         console.error('Payment handler error:', error);
                         alert('An error occurred during payment processing. Please contact support.');
+
+                        // Log payment handler error
+                        await logPaymentError(
+                            error instanceof Error ? error : 'Payment processing error',
+                            user?.id,
+                            user?.email,
+                            {
+                                rentalId,
+                                outfitId: id,
+                                step: 'payment_handler',
+                            }
+                        );
                     } finally {
                         setProcessingPayment(false);
                     }
@@ -233,6 +269,20 @@ export default function CheckoutPage() {
             console.error('Payment error:', error);
             alert('Payment failed. Please try again.');
             setProcessingPayment(false);
+
+            // Log payment error
+            await logPaymentError(
+                error instanceof Error ? error : 'Payment initialization failed',
+                user?.id,
+                user?.email,
+                {
+                    outfitId: id,
+                    step: 'payment_initialization',
+                    startDate: startDate?.getTime(),
+                    endDate: endDate?.getTime(),
+                    nights,
+                }
+            );
         }
     };
 
@@ -253,15 +303,12 @@ export default function CheckoutPage() {
         return (
             <main>
                 <Header />
-                <div className={styles.container}>
-                    <div className={styles.signInPrompt}>
-                        <h1 className="text-serif" style={{ fontSize: '2rem', marginBottom: '16px' }}>Outfit Not Found</h1>
-                        <p style={{ marginBottom: '24px', color: 'var(--color-text-muted)' }}>
-                            The outfit you're trying to rent doesn't exist.
-                        </p>
-                        <Button onClick={() => router.push('/')}>Go Home</Button>
-                    </div>
-                </div>
+                <ErrorState
+                    title="Outfit Not Found"
+                    message="The outfit you're trying to rent doesn't exist or couldn't be loaded."
+                    showRetry={true}
+                    onRetry={() => window.location.reload()}
+                />
             </main>
         );
     }
@@ -271,14 +318,14 @@ export default function CheckoutPage() {
         return (
             <main>
                 <Header />
-                <div className={styles.container}>
-                    <div className={styles.signInPrompt}>
-                        <h1 className="text-serif" style={{ fontSize: '2rem', marginBottom: '16px' }}>Select Dates First</h1>
-                        <p style={{ marginBottom: '24px', color: 'var(--color-text-muted)' }}>
-                            Please go back and select your rental dates.
-                        </p>
-                        <Button onClick={() => router.push(`/outfit/${id}`)}>Select Dates</Button>
-                    </div>
+                <ErrorState
+                    title="Select Dates First"
+                    message="Please go back and select your rental dates to continue."
+                    showRetry={false}
+                    showHome={false}
+                />
+                <div style={{ textAlign: 'center', marginTop: '-100px' }}>
+                    <Button onClick={() => router.push(`/outfit/${id}`)}>Select Dates</Button>
                 </div>
             </main>
         );
@@ -320,7 +367,7 @@ export default function CheckoutPage() {
                 <section className={styles.section}>
                     <h2 className={styles.sectionTitle}>Rental Summary</h2>
                     <div className={styles.summaryRow}>
-                        <img src={outfit.images[0]} alt={outfit.title} className={styles.thumbnail} />
+                        <img src={outfit.images && outfit.images.length > 0 ? outfit.images[0] : ''} alt={outfit.title} className={styles.thumbnail} />
                         <div className={styles.summaryDetails}>
                             <div className={styles.outfitTitle}>{outfit.title}</div>
                             <div className={styles.curatorName}>by {closet?.displayName || 'Curator'}</div>

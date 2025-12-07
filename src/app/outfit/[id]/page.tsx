@@ -11,6 +11,7 @@ import { DateRangePicker } from '@/components/ui/DateRangePicker';
 import { ImageCarousel } from '@/components/ui/ImageCarousel';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Avatar } from '@/components/ui/Avatar';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { getOutfitById, getClosetByCurator, getBlockedDates } from '@/lib/firestore';
 import { useCart } from '@/contexts/CartContext';
 import { Outfit, Closet } from '@/types';
@@ -25,6 +26,7 @@ export default function OutfitPage() {
     const [closet, setCloset] = useState<Closet | null>(null);
     const [blockedDates, setBlockedDates] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     // Selected dates state
     const [selectedDates, setSelectedDates] = useState<{
@@ -39,17 +41,22 @@ export default function OutfitPage() {
         const fetchData = async () => {
             try {
                 const outfitData = await getOutfitById(id);
-                if (outfitData) {
-                    setOutfit(outfitData);
-                    const closetData = await getClosetByCurator(outfitData.curatorId);
-                    setCloset(closetData);
-
-                    // Fetch blocked dates
-                    const blocked = await getBlockedDates(id);
-                    setBlockedDates(blocked);
+                if (!outfitData) {
+                    setError('Outfit not found');
+                    setLoading(false);
+                    return;
                 }
-            } catch (error) {
-                console.error('[OutfitPage] Error fetching data:', error);
+
+                setOutfit(outfitData);
+                const closetData = await getClosetByCurator(outfitData.curatorId);
+                setCloset(closetData);
+
+                // Fetch blocked dates
+                const blocked = await getBlockedDates(id);
+                setBlockedDates(blocked);
+            } catch (err) {
+                console.error('[OutfitPage] Error fetching data:', err);
+                setError('Failed to load outfit data');
             } finally {
                 setLoading(false);
             }
@@ -60,6 +67,10 @@ export default function OutfitPage() {
 
     const handleDateSelect = (startDate: Date, endDate: Date, nights: number) => {
         setSelectedDates({ startDate, endDate, nights });
+    };
+
+    const handleDateClear = () => {
+        setSelectedDates(null);
     };
 
     const handleAddToCart = () => {
@@ -91,15 +102,18 @@ export default function OutfitPage() {
         );
     }
 
-    if (!outfit) {
+    if (error || !outfit) {
+        const errorTitle = error === 'Outfit not found' ? 'Outfit Not Found' : 'Error Loading Outfit';
+        const errorMessage = error || "The outfit you're looking for doesn't exist or couldn't be loaded.";
+
         return (
             <main className={styles.container}>
                 <Header />
-                <div className={styles.errorState}>
-                    <h1>Outfit Not Found</h1>
-                    <p>The outfit you're looking for doesn't exist.</p>
-                    <Button onClick={() => router.push('/')}>Go Home</Button>
-                </div>
+                <ErrorState
+                    title={errorTitle}
+                    message={errorMessage}
+                    onRetry={() => window.location.reload()}
+                />
             </main>
         );
     }
@@ -117,11 +131,11 @@ export default function OutfitPage() {
                     <Link href={`/c/${closet.slug}`} className={styles.curatorRow}>
                         <Avatar
                             src={closet.avatarUrl}
-                            name={closet.displayName}
+                            name={closet.displayName || 'Unknown Curator'}
                             size="md"
                         />
                         <div>
-                            <div className={styles.curatorName}>{closet.displayName}</div>
+                            <div className={styles.curatorName}>{closet.displayName || 'Unknown Curator'}</div>
                             <div className={styles.curatorLabel}>curator</div>
                         </div>
                     </Link>
@@ -149,6 +163,7 @@ export default function OutfitPage() {
                     <DateRangePicker
                         blockedDates={blockedDates}
                         onDateSelect={handleDateSelect}
+                        onDateClear={handleDateClear}
                         perNightPrice={outfit.perNightPrice}
                         minNights={1}
                     />
