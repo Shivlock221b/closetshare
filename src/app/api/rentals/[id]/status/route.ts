@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { updateRentalStatus, updateRentalTracking } from '@/lib/firestore';
 import { RentalStatus } from '@/types';
 
+// Mark this route as dynamic (uses request body and params)
+export const dynamic = 'force-dynamic';
+
 export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }

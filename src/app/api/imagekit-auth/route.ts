@@ -3,6 +3,9 @@ import { getUploadAuthParams } from "@imagekit/next/server";
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuthToken, getUserByUid } from "@/lib/firebaseAdmin";
 
+// Mark this route as dynamic (cannot be statically rendered)
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
     try {
         // Verify user is authenticated

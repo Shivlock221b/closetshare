@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 
+// Mark this route as dynamic (uses request body)
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
     try {
         const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = await request.json();

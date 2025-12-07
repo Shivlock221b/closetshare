@@ -6,6 +6,9 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET!,
 });
 
+// Mark this route as dynamic (uses request body)
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
     try {
         const { amount } = await request.json();

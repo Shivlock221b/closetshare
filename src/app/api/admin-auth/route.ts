@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 
+// Mark this route as dynamic (uses request body)
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
     try {
         const { passcode } = await request.json();
