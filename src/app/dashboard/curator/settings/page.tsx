@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { CircularImageCropperModal } from '@/components/ui/CircularImageCropperModal';
 import { getClosetByCurator, updateCuratorProfile } from '@/lib/firestore';
 import { uploadImage } from '@/lib/storage';
 import { Closet } from '@/types';
@@ -18,6 +19,7 @@ export default function ProfileSettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [imageToCrop, setImageToCrop] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         displayName: '',
@@ -95,13 +97,23 @@ export default function ProfileSettingsPage() {
         }
     };
 
-    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file || !user) return;
+        if (!file) return;
+
+        // Create preview URL and open cropper
+        const imageUrl = URL.createObjectURL(file);
+        setImageToCrop(imageUrl);
+    };
+
+    const handleCropComplete = async (croppedImage: File) => {
+        if (!user) return;
 
         setUploading(true);
+        setImageToCrop(null);
+
         try {
-            const url = await uploadImage(file, `avatars/${user.id}`);
+            const url = await uploadImage(croppedImage, `avatars/${user.id}`);
             setAvatarUrl(url);
         } catch (error) {
             console.error('[Settings] Error uploading avatar:', error);
@@ -109,6 +121,13 @@ export default function ProfileSettingsPage() {
         } finally {
             setUploading(false);
         }
+    };
+
+    const handleCropCancel = () => {
+        if (imageToCrop) {
+            URL.revokeObjectURL(imageToCrop);
+        }
+        setImageToCrop(null);
     };
 
     const handleSave = async () => {
@@ -198,7 +217,7 @@ export default function ProfileSettingsPage() {
                                 type="file"
                                 id="avatar"
                                 accept="image/*"
-                                onChange={handleAvatarUpload}
+                                onChange={handleAvatarSelect}
                                 className={styles.fileInput}
                             />
                             <label htmlFor="avatar" className={styles.uploadBtn}>
@@ -321,6 +340,15 @@ export default function ProfileSettingsPage() {
                     </Button>
                 </div>
             </div>
+
+            {/* Circular Image Cropper Modal */}
+            {imageToCrop && (
+                <CircularImageCropperModal
+                    image={imageToCrop}
+                    onCropComplete={handleCropComplete}
+                    onCancel={handleCropCancel}
+                />
+            )}
         </main>
     );
 }

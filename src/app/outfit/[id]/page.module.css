@@ -1,6 +1,7 @@
 .container {
-    padding-bottom: 100px;
-    /* Space for sticky CTA */
+    padding-bottom: 120px;
+    background-color: #FFFFFF;
+    min-height: 100vh;
 }
 
 .loadingState,
@@ -22,9 +23,11 @@
 
 .hero {
     width: 100%;
-    aspect-ratio: 3/4;
+    max-width: 100%;
+    aspect-ratio: 16/9;
     position: relative;
-    background-color: var(--color-border);
+    background-color: #F7F7F7;
+    margin-bottom: 48px;
 }
 
 .heroImage {
@@ -34,23 +37,49 @@
 }
 
 .details {
-    padding: var(--spacing-md);
-    background-color: var(--color-background);
+    padding: 0 24px;
+    background-color: #FFFFFF;
+    max-width: 1120px;
+    margin: 0 auto;
 }
 
 .title {
-    font-family: var(--font-serif);
-    font-size: 24px;
-    margin: 0 0 var(--spacing-md) 0;
+    font-family: var(--font-sans);
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.2;
+    margin: 0 0 8px 0;
+    color: #222222;
+    letter-spacing: -0.02em;
+}
+
+@media (min-width: 1024px) {
+    .hero {
+        aspect-ratio: 2/1;
+        margin-bottom: 40px;
+    }
+
+    .title {
+        font-size: 32px;
+    }
 }
 
 .curatorRow {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-md);
+    gap: 16px;
+    margin-bottom: 32px;
+    padding: 24px;
     text-decoration: none;
     color: inherit;
+    border: 1px solid #DDDDDD;
+    border-radius: 12px;
+    transition: box-shadow 0.2s ease;
+    background: #FFFFFF;
+}
+
+.curatorRow:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
 .curatorRow:hover .curatorName {
@@ -58,64 +87,74 @@
 }
 
 .curatorAvatar {
-    width: 40px;
-    height: 40px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     object-fit: cover;
 }
 
 .curatorName {
-    font-family: var(--font-serif);
-    font-size: 1.125rem;
+    font-family: var(--font-sans);
+    font-size: 16px;
     font-weight: 600;
+    color: #222222;
+    margin-bottom: 4px;
 }
 
 .curatorLabel {
-    font-size: 0.75rem;
-    color: var(--color-text-muted);
-    text-transform: uppercase;
+    font-size: 14px;
+    color: #717171;
+    font-weight: 400;
 }
 
 .priceRow {
     display: flex;
     align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: var(--spacing-md);
-    padding-bottom: var(--spacing-md);
-    border-bottom: 1px solid var(--color-border);
+    gap: 8px;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #EBEBEB;
 }
 
 .priceLabel {
-    font-size: 0.875rem;
-    color: var(--color-text-muted);
+    font-size: 14px;
+    color: #222222;
+    font-weight: 400;
 }
 
 .price {
-    font-size: 1.5rem;
-    font-weight: 700;
-    font-family: var(--font-serif);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    color: #222222;
+    letter-spacing: -0.02em;
 }
 
 .description {
-    font-size: 1rem;
-    line-height: 1.6;
-    color: var(--color-text);
-    margin-bottom: var(--spacing-lg);
+    font-size: 16px;
+    line-height: 1.625;
+    color: #222222;
+    margin-bottom: 32px;
+    font-weight: 400;
 }
 
 .tags {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-lg);
+    gap: 8px;
+    margin-bottom: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid #EBEBEB;
 }
 
 .tag {
-    padding: 4px 12px;
-    background-color: var(--color-white);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-full);
-    font-size: 0.875rem;
+    padding: 8px 16px;
+    background-color: #F7F7F7;
+    border: 1px solid #EBEBEB;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #222222;
 }
 
 .stickyCTA {
@@ -123,9 +162,9 @@
     bottom: 0;
     left: 0;
     right: 0;
-    padding: var(--spacing-md);
-    background-color: var(--color-white);
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+    padding: 16px 24px;
+    background: #FFFFFF;
+    box-shadow: 0 -1px 0 0 #EBEBEB, 0 0 16px rgba(0, 0, 0, 0.12);
     display: flex;
     justify-content: center;
     z-index: 100;
@@ -134,14 +173,24 @@
 .ctaButton {
     width: 100%;
     max-width: 600px;
-    background-color: var(--color-primary);
-    color: var(--color-white);
-    font-size: 1.125rem;
+    background: var(--color-primary);
+    color: #FFFFFF;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 14px 24px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.ctaButton:hover {
+    background: var(--color-coral-dark);
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(255, 127, 106, 0.3);
 }
 
 .ctaButtons {
     display: flex;
-    gap: var(--spacing-sm);
+    gap: 12px;
     width: 100%;
     max-width: 600px;
 }
@@ -150,8 +199,18 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--spacing-xs);
+    gap: 8px;
     min-width: 140px;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 14px 24px;
+    border: 1px solid #222222;
+    background: #FFFFFF;
+    color: #222222;
+}
+
+.cartButton:hover {
+    background: #F7F7F7;
 }
 
 .gallery {
@@ -169,45 +228,51 @@
 }
 
 .dateSection {
-    margin-top: var(--spacing-xl);
-    padding-top: var(--spacing-lg);
-    border-top: 1px solid var(--color-border);
+    margin-top: 48px;
+    padding-top: 48px;
+    border-top: 1px solid #EBEBEB;
 }
 
 .sectionTitle {
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 600;
-    margin: 0 0 var(--spacing-md) 0;
+    font-family: var(--font-sans);
+    margin: 0 0 24px 0;
+    color: #222222;
+    letter-spacing: -0.02em;
 }
 
 .policies {
-    margin-top: var(--spacing-lg);
-    padding: var(--spacing-md);
-    background: var(--color-cream);
-    border-radius: var(--radius-md);
+    margin-top: 48px;
+    padding: 32px;
+    background: #F7F7F7;
+    border-radius: 12px;
+    border: 1px solid #EBEBEB;
 }
 
 .policiesTitle {
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 600;
-    margin: 0 0 var(--spacing-sm) 0;
-    color: var(--color-text);
+    margin: 0 0 16px 0;
+    color: #222222;
+    font-family: var(--font-sans);
 }
 
 .policyList {
     margin: 0;
-    padding-left: var(--spacing-md);
-    font-size: 13px;
-    color: var(--color-text-secondary);
-    line-height: 1.6;
+    padding-left: 24px;
+    font-size: 15px;
+    color: #222222;
+    line-height: 1.625;
 }
 
 .policyList li {
-    margin-bottom: var(--spacing-xs);
+    margin-bottom: 12px;
 }
 
 .policyList strong {
-    color: var(--color-text);
+    color: #222222;
+    font-weight: 600;
 }
 
 .ctaButton:disabled {

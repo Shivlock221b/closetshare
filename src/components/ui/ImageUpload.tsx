@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { ImageCropperModal } from './ImageCropperModal';
 import styles from './ImageUpload.module.css';
 
 interface ImageUploadProps {
@@ -13,6 +14,9 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     maxImages = 5,
 }) => {
     const [previews, setPreviews] = useState<string[]>([]);
+    const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+    const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+    const [currentFileIndex, setCurrentFileIndex] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,18 +25,57 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         const filesToAdd = files.slice(0, remainingSlots);
 
         if (filesToAdd.length > 0) {
-            // Create preview URLs
-            const newPreviews = filesToAdd.map(file => URL.createObjectURL(file));
-            setPreviews([...previews, ...newPreviews]);
-
-            // Update parent component
-            onImagesChange([...images, ...filesToAdd]);
+            // Start cropping flow with first image
+            setPendingFiles(filesToAdd);
+            setCurrentFileIndex(0);
+            const firstImageUrl = URL.createObjectURL(filesToAdd[0]);
+            setImageToCrop(firstImageUrl);
         }
 
         // Reset input
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
+    };
+
+    const handleCropComplete = (croppedImage: File) => {
+        // Create preview URL for cropped image
+        const previewUrl = URL.createObjectURL(croppedImage);
+        setPreviews([...previews, previewUrl]);
+        onImagesChange([...images, croppedImage]);
+
+        // Clean up current crop image URL
+        if (imageToCrop) {
+            URL.revokeObjectURL(imageToCrop);
+        }
+
+        // Check if there are more images to crop
+        if (currentFileIndex < pendingFiles.length - 1) {
+            const nextIndex = currentFileIndex + 1;
+            setCurrentFileIndex(nextIndex);
+            const nextImageUrl = URL.createObjectURL(pendingFiles[nextIndex]);
+            setImageToCrop(nextImageUrl);
+        } else {
+            // All images processed
+            setImageToCrop(null);
+            setPendingFiles([]);
+            setCurrentFileIndex(0);
+        }
+    };
+
+    const handleCropCancel = () => {
+        // Clean up all pending image URLs
+        if (imageToCrop) {
+            URL.revokeObjectURL(imageToCrop);
+        }
+        pendingFiles.forEach(file => {
+            const url = URL.createObjectURL(file);
+            URL.revokeObjectURL(url);
+        });
+
+        setImageToCrop(null);
+        setPendingFiles([]);
+        setCurrentFileIndex(0);
     };
 
     const handleRemoveImage = (index: number) => {
@@ -108,8 +151,19 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
             />
 
             <p className={styles.hint}>
-                First image will be the primary image. Max {maxImages} images.
+                First image will be the primary image. Images will be cropped to 3:4 ratio. Max {maxImages} images.
             </p>
+
+            {/* Image Cropper Modal */}
+            {imageToCrop && (
+                <ImageCropperModal
+                    image={imageToCrop}
+                    onCropComplete={handleCropComplete}
+                    onCancel={handleCropCancel}
+                    currentIndex={currentFileIndex}
+                    totalImages={pendingFiles.length}
+                />
+            )}
         </div>
     );
 };

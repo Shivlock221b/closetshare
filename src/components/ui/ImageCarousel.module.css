@@ -8,9 +8,9 @@
     position: relative;
     width: 100%;
     aspect-ratio: 3 / 4;
-    border-radius: var(--radius-lg);
+    border-radius: 0;
     overflow: hidden;
-    background: var(--color-surface);
+    background: var(--color-background);
 }
 
 .image {
@@ -22,8 +22,8 @@
 .placeholder {
     width: 100%;
     aspect-ratio: 3 / 4;
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
+    background: var(--color-background);
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -87,9 +87,9 @@
 
 .thumbnails {
     display: flex;
-    gap: var(--spacing-xs);
+    gap: 6px;
     overflow-x: auto;
-    padding: var(--spacing-xs) 0;
+    padding: 8px 0;
     scrollbar-width: none;
 }
 
@@ -99,22 +99,24 @@
 
 .thumbnail {
     flex-shrink: 0;
-    width: 60px;
-    height: 80px;
-    border-radius: var(--radius-sm);
+    width: 64px;
+    height: 85px;
+    border-radius: 6px;
     overflow: hidden;
     border: 2px solid transparent;
-    transition: border-color 0.2s;
-    opacity: 0.7;
+    transition: all 0.2s ease;
+    opacity: 0.6;
+    background-color: var(--color-white);
 }
 
 .thumbnail:hover {
-    opacity: 1;
+    opacity: 0.8;
 }
 
 .thumbnail.activeThumbnail {
-    border-color: var(--color-coral);
+    border-color: var(--color-text);
     opacity: 1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .thumbnail img {
@@ -198,7 +200,7 @@
     max-width: 100%;
     max-height: 90vh;
     object-fit: contain;
-    border-radius: var(--radius-lg);
+    border-radius: 0;
 }
 
 .fullscreenIndicators {
