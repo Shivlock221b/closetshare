@@ -1,6 +1,7 @@
 import { initializeApp, getApps, cert, App } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
+import { User } from '@/types';
 
 let adminApp: App;
 
@@ -56,7 +57,7 @@ export async function verifyAuthToken(authHeader: string | null) {
 /**
  * Get user data from Firestore by UID
  */
-export async function getUserByUid(uid: string) {
+export async function getUserByUid(uid: string): Promise<User | null> {
     try {
         const userDoc = await getAdminFirestore()
             .collection('users')
@@ -67,7 +68,7 @@ export async function getUserByUid(uid: string) {
             return null;
         }
 
-        return { id: userDoc.id, ...userDoc.data() };
+        return { id: userDoc.id, ...userDoc.data() } as User;
     } catch (error) {
         console.error('[Firestore] Error getting user:', error);
         return null;
