@@ -130,10 +130,14 @@ export default function CartPage() {
                         <span>Platform Fee (₹10/night)</span>
                         <span>₹10</span>
                     </div>
+                    <div className={styles.summaryRow}>
+                        <span>Delivery (₹25 each way)</span>
+                        <span>₹50</span>
+                    </div>
                     <div className={styles.totalRow}>
                         <span>Total</span>
                         <span>
-                            ₹{calculateTotal() + outfits.filter(o => o).reduce((sum, o) => sum + (o?.securityDeposit || 0), 0) + 10}
+                            ₹{calculateTotal() + outfits.filter(o => o).reduce((sum, o) => sum + (o?.securityDeposit || 0), 0) + 10 + 50}
                         </span>
                     </div>
                 </div>

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { CircularImageCropperModal } from '@/components/ui/CircularImageCropperModal';
 import { getClosetByCurator, updateCuratorProfile } from '@/lib/firestore';
 import { uploadImage } from '@/lib/storage';
-import { Closet } from '@/types';
+import { Closet, BodyType } from '@/types';
 import styles from './page.module.css';
 
 export default function ProfileSettingsPage() {
@@ -30,6 +30,20 @@ export default function ProfileSettingsPage() {
         pinterest: '',
         website: '',
         slug: '',
+        // Pickup Address
+        pickupFullName: '',
+        pickupPhone: '',
+        pickupAddress: '',
+        pickupCity: '',
+        pickupState: '',
+        pickupZip: '',
+        // Size Profile
+        height: '',
+        bodyType: 'slim' as BodyType,
+        shoeSize: '',
+        bustChest: '',
+        waist: '',
+        hips: '',
     });
     const [avatarUrl, setAvatarUrl] = useState<string>('');
     const [slugError, setSlugError] = useState<string>('');
@@ -51,6 +65,20 @@ export default function ProfileSettingsPage() {
                         pinterest: closetData.socialLinks?.pinterest || '',
                         website: closetData.socialLinks?.website || '',
                         slug: closetData.slug || '',
+                        // Pickup Address
+                        pickupFullName: closetData.pickupAddress?.fullName || user.displayName || '',
+                        pickupPhone: closetData.pickupAddress?.phone || closetData.mobileNumber || '',
+                        pickupAddress: closetData.pickupAddress?.addressLine1 || '',
+                        pickupCity: closetData.pickupAddress?.city || '',
+                        pickupState: closetData.pickupAddress?.state || '',
+                        pickupZip: closetData.pickupAddress?.zipCode || '',
+                        // Size Profile
+                        height: closetData.sizeProfile?.height || '',
+                        bodyType: (closetData.sizeProfile?.bodyType || 'slim') as BodyType,
+                        shoeSize: closetData.sizeProfile?.shoeSize || '',
+                        bustChest: closetData.sizeProfile?.bustChest || '',
+                        waist: closetData.sizeProfile?.waist || '',
+                        hips: closetData.sizeProfile?.hips || '',
                     });
                     setAvatarUrl(closetData.avatarUrl || user.avatarUrl || '');
                 } else {
@@ -74,7 +102,7 @@ export default function ProfileSettingsPage() {
         }
     }, [user, authLoading]);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { id, value } = e.target;
         setFormData(prev => {
             const updates = { ...prev, [id]: value };
@@ -163,6 +191,22 @@ export default function ProfileSettingsPage() {
                     pinterest: formData.pinterest || undefined,
                     website: formData.website || undefined,
                 },
+                pickupAddress: formData.pickupAddress ? {
+                    fullName: formData.pickupFullName,
+                    phone: formData.pickupPhone,
+                    addressLine1: formData.pickupAddress,
+                    city: formData.pickupCity,
+                    state: formData.pickupState,
+                    zipCode: formData.pickupZip,
+                } : undefined,
+                sizeProfile: formData.height ? {
+                    height: formData.height,
+                    bodyType: formData.bodyType,
+                    shoeSize: formData.shoeSize,
+                    bustChest: formData.bustChest,
+                    waist: formData.waist,
+                    hips: formData.hips,
+                } : undefined,
             });
             alert('Profile updated successfully!');
         } catch (error) {
@@ -332,6 +376,124 @@ export default function ProfileSettingsPage() {
                     <p className={styles.hint}>
                         Your earnings will be sent to this UPI ID after rentals are completed.
                     </p>
+                </section>
+
+                <section className={styles.section}>
+                    <h2 className={styles.sectionTitle}>Pickup Address</h2>
+                    <p className={styles.hint} style={{ marginTop: '-8px', marginBottom: '12px' }}>
+                        Where should renters return the outfits?
+                    </p>
+                    <div className={styles.formGrid}>
+                        <Input
+                            id="pickupFullName"
+                            label="Full Name"
+                            placeholder="Jane Doe"
+                            value={formData.pickupFullName}
+                            onChange={handleInputChange}
+                        />
+                        <Input
+                            id="pickupPhone"
+                            label="Phone Number"
+                            placeholder="+91 98765 43210"
+                            value={formData.pickupPhone}
+                            onChange={handleInputChange}
+                        />
+                        <Input
+                            id="pickupAddress"
+                            label="Address"
+                            placeholder="123 Fashion St"
+                            value={formData.pickupAddress}
+                            onChange={handleInputChange}
+                        />
+                        <Input
+                            id="pickupState"
+                            label="State"
+                            placeholder="Maharashtra"
+                            value={formData.pickupState}
+                            onChange={handleInputChange}
+                        />
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                            <Input
+                                id="pickupCity"
+                                label="City"
+                                placeholder="Mumbai"
+                                value={formData.pickupCity}
+                                onChange={handleInputChange}
+                            />
+                            <Input
+                                id="pickupZip"
+                                label="PIN Code"
+                                placeholder="400001"
+                                value={formData.pickupZip}
+                                onChange={handleInputChange}
+                            />
+                        </div>
+                    </div>
+                </section>
+
+                <section className={styles.section}>
+                    <h2 className={styles.sectionTitle}>Size Profile</h2>
+                    <p className={styles.hint} style={{ marginTop: '-8px', marginBottom: '12px' }}>
+                        Help renters understand what size to expect
+                    </p>
+                    <div className={styles.formGrid}>
+                        <Input
+                            id="height"
+                            label="Height"
+                            placeholder="5'7&quot; or 170cm"
+                            value={formData.height}
+                            onChange={handleInputChange}
+                        />
+                        <div>
+                            <label htmlFor="bodyType" className={styles.label}>Body Type</label>
+                            <select
+                                id="bodyType"
+                                value={formData.bodyType}
+                                onChange={handleInputChange}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    border: '1px solid var(--color-border)',
+                                    borderRadius: '8px',
+                                    fontSize: '1rem',
+                                }}
+                            >
+                                <option value="petite">Petite</option>
+                                <option value="slim">Slim</option>
+                                <option value="athletic">Athletic</option>
+                                <option value="curvy">Curvy</option>
+                                <option value="plus-size">Plus Size</option>
+                            </select>
+                        </div>
+                        <Input
+                            id="shoeSize"
+                            label="Shoe Size"
+                            placeholder="7 or 39"
+                            value={formData.shoeSize}
+                            onChange={handleInputChange}
+                        />
+                        <Input
+                            id="bustChest"
+                            label="Bust/Chest"
+                            placeholder="34&quot; or 86cm"
+                            value={formData.bustChest}
+                            onChange={handleInputChange}
+                        />
+                        <Input
+                            id="waist"
+                            label="Waist"
+                            placeholder="28&quot; or 71cm"
+                            value={formData.waist}
+                            onChange={handleInputChange}
+                        />
+                        <Input
+                            id="hips"
+                            label="Hips"
+                            placeholder="36&quot; or 91cm"
+                            value={formData.hips}
+                            onChange={handleInputChange}
+                        />
+                    </div>
                 </section>
 
                 <div className={styles.actions}>

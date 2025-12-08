@@ -21,7 +21,7 @@ const DAY_NAMES = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 // Platform fee per night
 const PLATFORM_FEE_PER_NIGHT = 10;
-const DELIVERY_FEE = 50;
+const DELIVERY_FEE = 25; // Per way
 
 // Convert date to midnight UTC timestamp for comparison
 const toDateKey = (date: Date): number => {

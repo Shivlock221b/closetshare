@@ -127,14 +127,14 @@ export const Header: React.FC = () => {
 
                         {showMainMenu && (
                             <div className={styles.dropdown}>
-                                <Link
+                                {/* <Link
                                     href="/closets"
                                     className={styles.dropdownItem}
                                     onClick={() => setShowMainMenu(false)}
                                 >
                                     <Store size={16} />
                                     Browse Closets
-                                </Link>
+                                </Link> */}
                                 {user && (
                                     <>
                                         <div className={styles.dropdownDivider} />

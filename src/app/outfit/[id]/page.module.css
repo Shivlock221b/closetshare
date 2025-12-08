@@ -279,3 +279,71 @@
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+.sizeProfile {
+    margin-top: 24px;
+    margin-bottom: 32px;
+    padding: 24px;
+    background: #F7F7F7;
+    border-radius: 12px;
+    border: 1px solid #EBEBEB;
+}
+
+.sizeProfileTitle {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+    color: #222222;
+    font-family: var(--font-sans);
+}
+
+.sizeProfileGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+@media (min-width: 768px) {
+    .sizeProfileGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.sizeProfileItem {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sizeProfileLabel {
+    font-size: 13px;
+    color: #717171;
+    font-weight: 400;
+}
+
+.sizeProfileValue {
+    font-size: 15px;
+    color: #222222;
+    font-weight: 500;
+}
+
+.categorySection {
+    margin-top: 32px;
+    padding-top: 32px;
+    border-top: 1px solid #EBEBEB;
+}
+
+.categoryTitle {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    color: #222222;
+    font-family: var(--font-sans);
+}
+
+.categoryValue {
+    font-size: 16px;
+    color: #222222;
+    margin: 0;
+    font-weight: 400;
+}

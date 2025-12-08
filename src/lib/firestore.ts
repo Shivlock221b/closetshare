@@ -268,6 +268,22 @@ export const updateCuratorProfile = async (
             pinterest?: string;
             website?: string;
         };
+        pickupAddress?: {
+            fullName: string;
+            phone: string;
+            addressLine1: string;
+            city: string;
+            state: string;
+            zipCode: string;
+        };
+        sizeProfile?: {
+            height: string;
+            bodyType: string;
+            shoeSize: string;
+            bustChest: string;
+            waist: string;
+            hips: string;
+        };
     }
 ): Promise<void> => {
     try {
@@ -301,6 +317,8 @@ export const updateCuratorProfile = async (
         if (profileData.avatarUrl !== undefined) cleanedData.avatarUrl = profileData.avatarUrl;
         if (profileData.slug !== undefined) cleanedData.slug = profileData.slug;
         if (cleanedSocialLinks !== undefined) cleanedData.socialLinks = cleanedSocialLinks;
+        if (profileData.pickupAddress !== undefined) cleanedData.pickupAddress = profileData.pickupAddress;
+        if (profileData.sizeProfile !== undefined) cleanedData.sizeProfile = profileData.sizeProfile;
 
         if (closetSnap.exists()) {
             // Update existing closet
@@ -640,6 +658,22 @@ export const publishCloset = async (
         upiId: string;
         bio?: string;
         displayName?: string;
+        pickupAddress?: {
+            fullName: string;
+            phone: string;
+            addressLine1: string;
+            city: string;
+            state: string;
+            zipCode: string;
+        };
+        sizeProfile?: {
+            height: string;
+            bodyType: string;
+            shoeSize: string;
+            bustChest: string;
+            waist: string;
+            hips: string;
+        };
     }
 ): Promise<string> => {
     try {
@@ -657,6 +691,8 @@ export const publishCloset = async (
                 upiId: details.upiId,
                 bio: details.bio || closetSnap.data().bio,
                 displayName: details.displayName || closetSnap.data().displayName,
+                pickupAddress: details.pickupAddress || closetSnap.data().pickupAddress,
+                sizeProfile: details.sizeProfile || closetSnap.data().sizeProfile,
                 publishedAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
             });
@@ -672,6 +708,8 @@ export const publishCloset = async (
                 isPublished: true,
                 mobileNumber: details.mobileNumber,
                 upiId: details.upiId,
+                pickupAddress: details.pickupAddress,
+                sizeProfile: details.sizeProfile,
                 stats: {
                     outfitsCount: 0,
                     rentalsCount: 0,
@@ -747,8 +785,8 @@ export const calculateRentalPricing = (
     const rentalFee = perNightPrice * nights;
     const securityDeposit = perNightPrice; // 1 night
     const platformFee = 10 * nights; // ₹10 per night
-    const deliveryFee = 50; // ₹50 one way
-    const returnDeliveryFee = 50; // ₹50 one way
+    const deliveryFee = 25; // ₹25 one way
+    const returnDeliveryFee = 25; // ₹25 one way
     const total = rentalFee + securityDeposit + platformFee + deliveryFee + returnDeliveryFee;
     const curatorEarnings = rentalFee; // Curator gets 100% of rental fee
 

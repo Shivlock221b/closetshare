@@ -24,7 +24,7 @@ export const signInWithGoogle = async (): Promise<User> => {
         // Create user object from Firebase Auth data
         const newUser: User = {
             id: firebaseUser.uid,
-            role: 'user',
+            role: 'curator',
             displayName: firebaseUser.displayName || 'User',
             email: firebaseUser.email || '',
             avatarUrl: firebaseUser.photoURL || undefined,
@@ -90,7 +90,7 @@ export const getCurrentUser = async (firebaseUser: FirebaseUser): Promise<User |
         console.log('[Auth] User not in Firestore, creating from auth data');
         const newUser: User = {
             id: firebaseUser.uid,
-            role: 'user',
+            role: 'curator',
             displayName: firebaseUser.displayName || 'User',
             email: firebaseUser.email || '',
             avatarUrl: firebaseUser.photoURL || undefined,
@@ -115,7 +115,7 @@ export const getCurrentUser = async (firebaseUser: FirebaseUser): Promise<User |
         console.log('[Auth] Firestore offline, using Firebase Auth data');
         return {
             id: firebaseUser.uid,
-            role: 'user',
+            role: 'curator',
             displayName: firebaseUser.displayName || 'User',
             email: firebaseUser.email || '',
             avatarUrl: firebaseUser.photoURL || undefined,

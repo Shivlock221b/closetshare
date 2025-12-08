@@ -27,7 +27,6 @@ export default function EditOutfitPage() {
         category: '',
         size: '',
         perNightPrice: '',
-        securityDeposit: '',
         tags: '',
     });
 
@@ -48,7 +47,6 @@ export default function EditOutfitPage() {
                         category: data.category,
                         size: data.size,
                         perNightPrice: data.perNightPrice.toString(),
-                        securityDeposit: data.securityDeposit.toString(),
                         tags: data.tags.join(', '),
                     });
                 }
@@ -89,13 +87,6 @@ export default function EditOutfitPage() {
             return;
         }
 
-        // Validate security deposit
-        const deposit = parseFloat(formData.securityDeposit);
-        if (isNaN(deposit) || deposit < 0) {
-            alert('Please enter a valid security deposit (0 or greater)');
-            return;
-        }
-
         setLoading(true);
 
         try {
@@ -109,14 +100,15 @@ export default function EditOutfitPage() {
             }
 
             // Update outfit in Firestore
+            const perNightPrice = parseFloat(formData.perNightPrice);
             await updateOutfit(outfitId, {
                 title: formData.title,
                 description: formData.description,
                 images: finalImageUrls,
                 size: formData.size,
                 category: formData.category,
-                perNightPrice: parseFloat(formData.perNightPrice),
-                securityDeposit: parseFloat(formData.securityDeposit),
+                perNightPrice: perNightPrice,
+                securityDeposit: perNightPrice, // Equal to 1 night's rent
                 tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
             });
 
@@ -320,21 +312,14 @@ export default function EditOutfitPage() {
                                 step="1"
                             />
 
-                            <Input
-                                label="Security Deposit (₹) *"
-                                name="securityDeposit"
-                                type="number"
-                                value={formData.securityDeposit}
-                                onChange={handleInputChange}
-                                placeholder="1000"
-                                required
-                                min="0"
-                                step="1"
-                            />
+                            <div className={styles.depositField}>
+                                <label>Security Deposit (₹)</label>
+                                <div className={styles.depositValue}>
+                                    ₹{formData.perNightPrice || '0'}
+                                </div>
+                                <p className={styles.depositHint}>Equal to 1 night's rent</p>
+                            </div>
                         </div>
-                        <p className={styles.hint}>
-                            You'll earn 85% of the rental fee. Platform fee is 15%.
-                        </p>
                     </div>
 
                     {/* Actions */}

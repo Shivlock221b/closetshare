@@ -128,17 +128,51 @@ export default function OutfitPage() {
 
             <div className={styles.details}>
                 {closet && (
-                    <Link href={`/c/${closet.slug}`} className={styles.curatorRow}>
-                        <Avatar
-                            src={closet.avatarUrl}
-                            name={closet.displayName || 'Unknown Curator'}
-                            size="md"
-                        />
-                        <div>
-                            <div className={styles.curatorName}>{closet.displayName || 'Unknown Curator'}</div>
-                            <div className={styles.curatorLabel}>curator</div>
-                        </div>
-                    </Link>
+                    <>
+                        <Link href={`/c/${closet.slug}`} className={styles.curatorRow}>
+                            <Avatar
+                                src={closet.avatarUrl}
+                                name={closet.displayName || 'Unknown Curator'}
+                                size="md"
+                            />
+                            <div>
+                                <div className={styles.curatorName}>{closet.displayName || 'Unknown Curator'}</div>
+                                <div className={styles.curatorLabel}>curator</div>
+                            </div>
+                        </Link>
+
+                        {closet.sizeProfile && (
+                            <div className={styles.sizeProfile}>
+                                <h3 className={styles.sizeProfileTitle}>Curator's Size Profile</h3>
+                                <div className={styles.sizeProfileGrid}>
+                                    <div className={styles.sizeProfileItem}>
+                                        <span className={styles.sizeProfileLabel}>Height:</span>
+                                        <span className={styles.sizeProfileValue}>{closet.sizeProfile.height}</span>
+                                    </div>
+                                    <div className={styles.sizeProfileItem}>
+                                        <span className={styles.sizeProfileLabel}>Body Type:</span>
+                                        <span className={styles.sizeProfileValue}>{closet.sizeProfile.bodyType.charAt(0).toUpperCase() + closet.sizeProfile.bodyType.slice(1)}</span>
+                                    </div>
+                                    <div className={styles.sizeProfileItem}>
+                                        <span className={styles.sizeProfileLabel}>Shoe Size:</span>
+                                        <span className={styles.sizeProfileValue}>{closet.sizeProfile.shoeSize}</span>
+                                    </div>
+                                    <div className={styles.sizeProfileItem}>
+                                        <span className={styles.sizeProfileLabel}>Bust/Chest:</span>
+                                        <span className={styles.sizeProfileValue}>{closet.sizeProfile.bustChest}</span>
+                                    </div>
+                                    <div className={styles.sizeProfileItem}>
+                                        <span className={styles.sizeProfileLabel}>Waist:</span>
+                                        <span className={styles.sizeProfileValue}>{closet.sizeProfile.waist}</span>
+                                    </div>
+                                    <div className={styles.sizeProfileItem}>
+                                        <span className={styles.sizeProfileLabel}>Hips:</span>
+                                        <span className={styles.sizeProfileValue}>{closet.sizeProfile.hips}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </>
                 )}
 
                 <h1 className={styles.title}>{outfit.title}</h1>
@@ -155,6 +189,12 @@ export default function OutfitPage() {
                     {outfit.tags.map(tag => (
                         <span key={tag} className={styles.tag}>{tag}</span>
                     ))}
+                </div>
+
+                {/* Outfit Category Section */}
+                <div className={styles.categorySection}>
+                    <h3 className={styles.categoryTitle}>Outfit Category</h3>
+                    <p className={styles.categoryValue}>{outfit.category}</p>
                 </div>
 
                 {/* Date Selection Section */}
@@ -183,7 +223,7 @@ export default function OutfitPage() {
                             <strong>Damage Policy:</strong> Minor damage = deposit forfeited. Major damage = full outfit cost charged
                         </li>
                         <li>
-                            <strong>Delivery:</strong> ₹50 each way (included in total)
+                            <strong>Delivery:</strong> ₹25 each way (included in total)
                         </li>
                     </ul>
                 </div>
