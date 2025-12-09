@@ -39,7 +39,7 @@ export default function ProfileSettingsPage() {
         pickupZip: '',
         // Size Profile
         height: '',
-        bodyType: 'slim' as BodyType,
+        bodyType: '' as BodyType,
         shoeSize: '',
         bustChest: '',
         waist: '',
@@ -74,7 +74,7 @@ export default function ProfileSettingsPage() {
                         pickupZip: closetData.pickupAddress?.zipCode || '',
                         // Size Profile
                         height: closetData.sizeProfile?.height || '',
-                        bodyType: (closetData.sizeProfile?.bodyType || 'slim') as BodyType,
+                        bodyType: (closetData.sizeProfile?.bodyType || '') as BodyType,
                         shoeSize: closetData.sizeProfile?.shoeSize || '',
                         bustChest: closetData.sizeProfile?.bustChest || '',
                         waist: closetData.sizeProfile?.waist || '',
@@ -199,13 +199,14 @@ export default function ProfileSettingsPage() {
                     state: formData.pickupState,
                     zipCode: formData.pickupZip,
                 } : undefined,
-                sizeProfile: formData.height ? {
-                    height: formData.height,
-                    bodyType: formData.bodyType,
-                    shoeSize: formData.shoeSize,
-                    bustChest: formData.bustChest,
-                    waist: formData.waist,
-                    hips: formData.hips,
+                sizeProfile: (formData.height || formData.bodyType || formData.shoeSize ||
+                             formData.bustChest || formData.waist || formData.hips) ? {
+                    ...(formData.height && { height: formData.height }),
+                    ...(formData.bodyType && { bodyType: formData.bodyType }),
+                    ...(formData.shoeSize && { shoeSize: formData.shoeSize }),
+                    ...(formData.bustChest && { bustChest: formData.bustChest }),
+                    ...(formData.waist && { waist: formData.waist }),
+                    ...(formData.hips && { hips: formData.hips }),
                 } : undefined,
             });
             alert('Profile updated successfully!');
@@ -432,9 +433,9 @@ export default function ProfileSettingsPage() {
                 </section>
 
                 <section className={styles.section}>
-                    <h2 className={styles.sectionTitle}>Size Profile</h2>
+                    <h2 className={styles.sectionTitle}>Size Profile (Optional)</h2>
                     <p className={styles.hint} style={{ marginTop: '-8px', marginBottom: '12px' }}>
-                        Help renters understand what size to expect
+                        Help renters understand what size to expect. All fields are optional.
                     </p>
                     <div className={styles.formGrid}>
                         <Input

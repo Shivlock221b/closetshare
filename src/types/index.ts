@@ -178,12 +178,12 @@ export interface Rental {
 export type BodyType = 'petite' | 'slim' | 'athletic' | 'curvy' | 'plus-size';
 
 export interface SizeProfile {
-    height: string;           // e.g., "5'7" or "170cm"
-    bodyType: BodyType;
-    shoeSize: string;         // e.g., "7" or "39"
-    bustChest: string;        // in inches or cm
-    waist: string;            // in inches or cm
-    hips: string;             // in inches or cm
+    height?: string;           // e.g., "5'7" or "170cm"
+    bodyType?: BodyType;
+    shoeSize?: string;         // e.g., "7" or "39"
+    bustChest?: string;        // in inches or cm
+    waist?: string;            // in inches or cm
+    hips?: string;             // in inches or cm
 }
 
 export interface PickupAddress {

@@ -277,12 +277,12 @@ export const updateCuratorProfile = async (
             zipCode: string;
         };
         sizeProfile?: {
-            height: string;
-            bodyType: string;
-            shoeSize: string;
-            bustChest: string;
-            waist: string;
-            hips: string;
+            height?: string;
+            bodyType?: string;
+            shoeSize?: string;
+            bustChest?: string;
+            waist?: string;
+            hips?: string;
         };
     }
 ): Promise<void> => {
@@ -667,12 +667,12 @@ export const publishCloset = async (
             zipCode: string;
         };
         sizeProfile?: {
-            height: string;
-            bodyType: string;
-            shoeSize: string;
-            bustChest: string;
-            waist: string;
-            hips: string;
+            height?: string;
+            bodyType?: string;
+            shoeSize?: string;
+            bustChest?: string;
+            waist?: string;
+            hips?: string;
         };
     }
 ): Promise<string> => {
@@ -685,21 +685,28 @@ export const publishCloset = async (
         if (closetSnap.exists()) {
             // Update existing closet
             slug = closetSnap.data().slug;
-            await updateDoc(closetRef, {
+            const updateData: Record<string, unknown> = {
                 isPublished: true,
                 mobileNumber: details.mobileNumber,
                 upiId: details.upiId,
-                bio: details.bio || closetSnap.data().bio,
-                displayName: details.displayName || closetSnap.data().displayName,
+                bio: details.bio || closetSnap.data().bio || '',
+                displayName: details.displayName || closetSnap.data().displayName || 'Curator',
                 pickupAddress: details.pickupAddress || closetSnap.data().pickupAddress,
-                sizeProfile: details.sizeProfile || closetSnap.data().sizeProfile,
                 publishedAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
-            });
+            };
+
+            // Only include sizeProfile if it exists (Firestore doesn't accept undefined)
+            const sizeProfile = details.sizeProfile || closetSnap.data().sizeProfile;
+            if (sizeProfile) {
+                updateData.sizeProfile = sizeProfile;
+            }
+
+            await updateDoc(closetRef, updateData);
         } else {
             // Create new closet
             slug = generateClosetSlug(details.displayName || 'curator');
-            await setDoc(closetRef, {
+            const newClosetData: Record<string, unknown> = {
                 id: curatorId,
                 curatorId,
                 slug,
@@ -709,7 +716,6 @@ export const publishCloset = async (
                 mobileNumber: details.mobileNumber,
                 upiId: details.upiId,
                 pickupAddress: details.pickupAddress,
-                sizeProfile: details.sizeProfile,
                 stats: {
                     outfitsCount: 0,
                     rentalsCount: 0,
@@ -719,7 +725,14 @@ export const publishCloset = async (
                 publishedAt: serverTimestamp(),
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
-            });
+            };
+
+            // Only include sizeProfile if it exists (Firestore doesn't accept undefined)
+            if (details.sizeProfile) {
+                newClosetData.sizeProfile = details.sizeProfile;
+            }
+
+            await setDoc(closetRef, newClosetData);
         }
 
         // Update user's curator profile

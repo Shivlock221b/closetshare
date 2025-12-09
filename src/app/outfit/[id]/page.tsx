@@ -141,34 +141,48 @@ export default function OutfitPage() {
                             </div>
                         </Link>
 
-                        {closet.sizeProfile && (
+                        {closet.sizeProfile && (closet.sizeProfile.height || closet.sizeProfile.bodyType ||
+                            closet.sizeProfile.shoeSize || closet.sizeProfile.bustChest ||
+                            closet.sizeProfile.waist || closet.sizeProfile.hips) && (
                             <div className={styles.sizeProfile}>
                                 <h3 className={styles.sizeProfileTitle}>Curator's Size Profile</h3>
                                 <div className={styles.sizeProfileGrid}>
-                                    <div className={styles.sizeProfileItem}>
-                                        <span className={styles.sizeProfileLabel}>Height:</span>
-                                        <span className={styles.sizeProfileValue}>{closet.sizeProfile.height}</span>
-                                    </div>
-                                    <div className={styles.sizeProfileItem}>
-                                        <span className={styles.sizeProfileLabel}>Body Type:</span>
-                                        <span className={styles.sizeProfileValue}>{closet.sizeProfile.bodyType.charAt(0).toUpperCase() + closet.sizeProfile.bodyType.slice(1)}</span>
-                                    </div>
-                                    <div className={styles.sizeProfileItem}>
-                                        <span className={styles.sizeProfileLabel}>Shoe Size:</span>
-                                        <span className={styles.sizeProfileValue}>{closet.sizeProfile.shoeSize}</span>
-                                    </div>
-                                    <div className={styles.sizeProfileItem}>
-                                        <span className={styles.sizeProfileLabel}>Bust/Chest:</span>
-                                        <span className={styles.sizeProfileValue}>{closet.sizeProfile.bustChest}</span>
-                                    </div>
-                                    <div className={styles.sizeProfileItem}>
-                                        <span className={styles.sizeProfileLabel}>Waist:</span>
-                                        <span className={styles.sizeProfileValue}>{closet.sizeProfile.waist}</span>
-                                    </div>
-                                    <div className={styles.sizeProfileItem}>
-                                        <span className={styles.sizeProfileLabel}>Hips:</span>
-                                        <span className={styles.sizeProfileValue}>{closet.sizeProfile.hips}</span>
-                                    </div>
+                                    {closet.sizeProfile.height && (
+                                        <div className={styles.sizeProfileItem}>
+                                            <span className={styles.sizeProfileLabel}>Height:</span>
+                                            <span className={styles.sizeProfileValue}>{closet.sizeProfile.height}</span>
+                                        </div>
+                                    )}
+                                    {closet.sizeProfile.bodyType && (
+                                        <div className={styles.sizeProfileItem}>
+                                            <span className={styles.sizeProfileLabel}>Body Type:</span>
+                                            <span className={styles.sizeProfileValue}>{closet.sizeProfile.bodyType.charAt(0).toUpperCase() + closet.sizeProfile.bodyType.slice(1)}</span>
+                                        </div>
+                                    )}
+                                    {closet.sizeProfile.shoeSize && (
+                                        <div className={styles.sizeProfileItem}>
+                                            <span className={styles.sizeProfileLabel}>Shoe Size:</span>
+                                            <span className={styles.sizeProfileValue}>{closet.sizeProfile.shoeSize}</span>
+                                        </div>
+                                    )}
+                                    {closet.sizeProfile.bustChest && (
+                                        <div className={styles.sizeProfileItem}>
+                                            <span className={styles.sizeProfileLabel}>Bust/Chest:</span>
+                                            <span className={styles.sizeProfileValue}>{closet.sizeProfile.bustChest}</span>
+                                        </div>
+                                    )}
+                                    {closet.sizeProfile.waist && (
+                                        <div className={styles.sizeProfileItem}>
+                                            <span className={styles.sizeProfileLabel}>Waist:</span>
+                                            <span className={styles.sizeProfileValue}>{closet.sizeProfile.waist}</span>
+                                        </div>
+                                    )}
+                                    {closet.sizeProfile.hips && (
+                                        <div className={styles.sizeProfileItem}>
+                                            <span className={styles.sizeProfileLabel}>Hips:</span>
+                                            <span className={styles.sizeProfileValue}>{closet.sizeProfile.hips}</span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}

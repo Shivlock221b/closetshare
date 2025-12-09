@@ -34,7 +34,7 @@ export const PublishClosetModal: React.FC<PublishClosetModalProps> = ({
         pickupZip: currentCloset?.pickupAddress?.zipCode || '',
         // Size Profile
         height: currentCloset?.sizeProfile?.height || '',
-        bodyType: (currentCloset?.sizeProfile?.bodyType || 'slim') as BodyType,
+        bodyType: (currentCloset?.sizeProfile?.bodyType || '') as BodyType,
         shoeSize: currentCloset?.sizeProfile?.shoeSize || '',
         bustChest: currentCloset?.sizeProfile?.bustChest || '',
         waist: currentCloset?.sizeProfile?.waist || '',
@@ -87,27 +87,6 @@ export const PublishClosetModal: React.FC<PublishClosetModalProps> = ({
             newErrors.pickupZip = 'Please enter a valid 6-digit PIN code';
         }
 
-        // Validate size profile
-        if (!formData.height.trim()) {
-            newErrors.height = 'Height is required';
-        }
-
-        if (!formData.shoeSize.trim()) {
-            newErrors.shoeSize = 'Shoe size is required';
-        }
-
-        if (!formData.bustChest.trim()) {
-            newErrors.bustChest = 'Bust/Chest measurement is required';
-        }
-
-        if (!formData.waist.trim()) {
-            newErrors.waist = 'Waist measurement is required';
-        }
-
-        if (!formData.hips.trim()) {
-            newErrors.hips = 'Hips measurement is required';
-        }
-
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -119,6 +98,10 @@ export const PublishClosetModal: React.FC<PublishClosetModalProps> = ({
 
         setLoading(true);
         try {
+            // Only include sizeProfile if at least one field is filled
+            const hasSizeProfile = formData.height || formData.bodyType || formData.shoeSize ||
+                                   formData.bustChest || formData.waist || formData.hips;
+
             const slug = await publishCloset(user.id, {
                 mobileNumber: formData.mobileNumber,
                 upiId: formData.upiId,
@@ -132,14 +115,16 @@ export const PublishClosetModal: React.FC<PublishClosetModalProps> = ({
                     state: formData.pickupState,
                     zipCode: formData.pickupZip,
                 },
-                sizeProfile: {
-                    height: formData.height,
-                    bodyType: formData.bodyType,
-                    shoeSize: formData.shoeSize,
-                    bustChest: formData.bustChest,
-                    waist: formData.waist,
-                    hips: formData.hips,
-                },
+                ...(hasSizeProfile && {
+                    sizeProfile: {
+                        ...(formData.height && { height: formData.height }),
+                        ...(formData.bodyType && { bodyType: formData.bodyType }),
+                        ...(formData.shoeSize && { shoeSize: formData.shoeSize }),
+                        ...(formData.bustChest && { bustChest: formData.bustChest }),
+                        ...(formData.waist && { waist: formData.waist }),
+                        ...(formData.hips && { hips: formData.hips }),
+                    }
+                }),
             });
 
             alert('Closet published successfully! 🎉');
@@ -353,16 +338,14 @@ export const PublishClosetModal: React.FC<PublishClosetModalProps> = ({
                         </div>
                     </div>
 
-                    <h3 style={{ marginTop: '24px', marginBottom: '16px', fontSize: '1.1rem' }}>Size Profile</h3>
+                    <h3 style={{ marginTop: '24px', marginBottom: '16px', fontSize: '1.1rem' }}>Size Profile (Optional)</h3>
                     <p className={styles.hint} style={{ marginTop: '-8px', marginBottom: '12px' }}>
-                        Help renters understand what size to expect
+                        Help renters understand what size to expect. All fields are optional.
                     </p>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                         <div className={styles.field}>
-                            <label htmlFor="height">
-                                Height <span className={styles.required}>*</span>
-                            </label>
+                            <label htmlFor="height">Height</label>
                             <input
                                 id="height"
                                 name="height"
@@ -370,16 +353,11 @@ export const PublishClosetModal: React.FC<PublishClosetModalProps> = ({
                                 value={formData.height}
                                 onChange={handleChange}
                                 placeholder="5'7&quot; or 170cm"
-                                className={`${styles.input} ${errors.height ? styles.inputError : ''}`}
+                                className={styles.input}
                             />
-                            {errors.height && (
-                                <span className={styles.error}>{errors.height}</span>
-                            )}
                         </div>
                         <div className={styles.field}>
-                            <label htmlFor="bodyType">
-                                Body Type <span className={styles.required}>*</span>
-                            </label>
+                            <label htmlFor="bodyType">Body Type</label>
                             <select
                                 id="bodyType"
                                 name="bodyType"
@@ -387,6 +365,7 @@ export const PublishClosetModal: React.FC<PublishClosetModalProps> = ({
                                 onChange={handleChange}
                                 className={styles.input}
                             >
+                                <option value="">Select...</option>
                                 <option value="petite">Petite</option>
                                 <option value="slim">Slim</option>
                                 <option value="athletic">Athletic</option>
@@ -397,9 +376,7 @@ export const PublishClosetModal: React.FC<PublishClosetModalProps> = ({
                     </div>
 
                     <div className={styles.field}>
-                        <label htmlFor="shoeSize">
-                            Shoe Size <span className={styles.required}>*</span>
-                        </label>
+                        <label htmlFor="shoeSize">Shoe Size</label>
                         <input
                             id="shoeSize"
                             name="shoeSize"
@@ -407,18 +384,13 @@ export const PublishClosetModal: React.FC<PublishClosetModalProps> = ({
                             value={formData.shoeSize}
                             onChange={handleChange}
                             placeholder="7 or 39"
-                            className={`${styles.input} ${errors.shoeSize ? styles.inputError : ''}`}
+                            className={styles.input}
                         />
-                        {errors.shoeSize && (
-                            <span className={styles.error}>{errors.shoeSize}</span>
-                        )}
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                         <div className={styles.field}>
-                            <label htmlFor="bustChest">
-                                Bust/Chest <span className={styles.required}>*</span>
-                            </label>
+                            <label htmlFor="bustChest">Bust/Chest</label>
                             <input
                                 id="bustChest"
                                 name="bustChest"
@@ -426,16 +398,11 @@ export const PublishClosetModal: React.FC<PublishClosetModalProps> = ({
                                 value={formData.bustChest}
                                 onChange={handleChange}
                                 placeholder="34&quot; or 86cm"
-                                className={`${styles.input} ${errors.bustChest ? styles.inputError : ''}`}
+                                className={styles.input}
                             />
-                            {errors.bustChest && (
-                                <span className={styles.error}>{errors.bustChest}</span>
-                            )}
                         </div>
                         <div className={styles.field}>
-                            <label htmlFor="waist">
-                                Waist <span className={styles.required}>*</span>
-                            </label>
+                            <label htmlFor="waist">Waist</label>
                             <input
                                 id="waist"
                                 name="waist"
@@ -443,16 +410,11 @@ export const PublishClosetModal: React.FC<PublishClosetModalProps> = ({
                                 value={formData.waist}
                                 onChange={handleChange}
                                 placeholder="28&quot; or 71cm"
-                                className={`${styles.input} ${errors.waist ? styles.inputError : ''}`}
+                                className={styles.input}
                             />
-                            {errors.waist && (
-                                <span className={styles.error}>{errors.waist}</span>
-                            )}
                         </div>
                         <div className={styles.field}>
-                            <label htmlFor="hips">
-                                Hips <span className={styles.required}>*</span>
-                            </label>
+                            <label htmlFor="hips">Hips</label>
                             <input
                                 id="hips"
                                 name="hips"
@@ -460,11 +422,8 @@ export const PublishClosetModal: React.FC<PublishClosetModalProps> = ({
                                 value={formData.hips}
                                 onChange={handleChange}
                                 placeholder="36&quot; or 91cm"
-                                className={`${styles.input} ${errors.hips ? styles.inputError : ''}`}
+                                className={styles.input}
                             />
-                            {errors.hips && (
-                                <span className={styles.error}>{errors.hips}</span>
-                            )}
                         </div>
                     </div>
 
