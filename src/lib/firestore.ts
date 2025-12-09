@@ -13,7 +13,7 @@ import {
     Timestamp
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { Rental, Outfit, Closet, TimelineEntry, RentalStatus, Rating } from '@/types';
+import { Rental, Outfit, Closet, TimelineEntry, RentalStatus, Rating, User } from '@/types';
 
 /**
  * Create a new rental in Firestore
@@ -1186,6 +1186,23 @@ export const getAllOutfits = async (): Promise<Outfit[]> => {
         } as Outfit));
     } catch (error) {
         console.error('Error getting all outfits:', error);
+        return [];
+    }
+};
+
+/**
+ * Get all users (for admin)
+ */
+export const getAllUsers = async (): Promise<User[]> => {
+    try {
+        const usersRef = collection(db, 'users');
+        const querySnapshot = await getDocs(usersRef);
+        return querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        } as User));
+    } catch (error) {
+        console.error('Error getting all users:', error);
         return [];
     }
 };

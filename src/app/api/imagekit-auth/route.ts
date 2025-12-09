@@ -29,10 +29,11 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Only curators can upload images
-        if (user.role !== 'curator') {
+        // Only curators and admins can upload images
+        const allowedRoles = ['curator', 'admin'];
+        if (!allowedRoles.includes(user.role)) {
             return NextResponse.json(
-                { error: 'Forbidden - Only curators can upload images' },
+                { error: 'Forbidden - Only curators and admins can upload images' },
                 { status: 403 }
             );
         }

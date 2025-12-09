@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdminImpersonation } from '@/hooks/useAdminImpersonation';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 import { getOutfitsByCurator, getClosetByCurator } from '@/lib/firestore';
@@ -13,18 +14,19 @@ import styles from './page.module.css';
 export default function MyClosetPage() {
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
+    const { effectiveUserId, isImpersonating, impersonatedUserName, exitImpersonation } = useAdminImpersonation();
     const [outfits, setOutfits] = useState<Outfit[]>([]);
     const [closet, setCloset] = useState<Closet | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
-            if (!user) return;
+            if (!effectiveUserId) return;
 
             try {
                 const [outfitsData, closetData] = await Promise.all([
-                    getOutfitsByCurator(user.id),
-                    getClosetByCurator(user.id)
+                    getOutfitsByCurator(effectiveUserId),
+                    getClosetByCurator(effectiveUserId)
                 ]);
                 setOutfits(outfitsData);
                 setCloset(closetData);
@@ -38,7 +40,7 @@ export default function MyClosetPage() {
         if (!authLoading) {
             fetchData();
         }
-    }, [user, authLoading]);
+    }, [effectiveUserId, authLoading]);
 
     if (authLoading || loading) {
         return (
@@ -67,6 +69,28 @@ export default function MyClosetPage() {
     return (
         <main>
             <Header />
+            {isImpersonating && (
+                <div style={{
+                    background: '#f59e0b',
+                    color: 'white',
+                    padding: '12px 24px',
+                    textAlign: 'center',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: '16px'
+                }}>
+                    <span>👁️ Admin View: Viewing as {impersonatedUserName}</span>
+                    <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={exitImpersonation}
+                    >
+                        Exit Admin View
+                    </Button>
+                </div>
+            )}
             <div className={styles.container}>
                 <div className={styles.header}>
                     <div>

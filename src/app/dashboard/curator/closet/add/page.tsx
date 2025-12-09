@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdminImpersonation } from '@/hooks/useAdminImpersonation';
 import { Header } from '@/components/layout/Header';
 import { ImageUpload } from '@/components/ui/ImageUpload';
 import { Input } from '@/components/ui/Input';
@@ -14,6 +15,7 @@ import styles from './page.module.css';
 export default function AddOutfitPage() {
     const router = useRouter();
     const { user } = useAuth();
+    const { effectiveUserId, isImpersonating, impersonatedUserName, exitImpersonation } = useAdminImpersonation();
     const [loading, setLoading] = useState(false);
     const [images, setImages] = useState<File[]>([]);
     const [formData, setFormData] = useState({
@@ -41,7 +43,7 @@ export default function AddOutfitPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!user) {
+        if (!effectiveUserId) {
             alert('You must be signed in to add an outfit');
             return;
         }
@@ -77,12 +79,12 @@ export default function AddOutfitPage() {
             const tempOutfitId = `temp_${Date.now()}`;
 
             // Upload images to Firebase Storage
-            const storagePath = getOutfitImagePath(user.id, tempOutfitId);
+            const storagePath = getOutfitImagePath(effectiveUserId, tempOutfitId);
             const imageUrls = await uploadMultipleImages(images, storagePath);
 
             // Create outfit in Firestore
             const outfitId = await createOutfit({
-                curatorId: user.id,
+                curatorId: effectiveUserId,
                 title: formData.title,
                 description: formData.description,
                 images: imageUrls,
@@ -103,7 +105,7 @@ export default function AddOutfitPage() {
             });
 
             // Update closet stats
-            await updateClosetStats(user.id, { outfitsCount: 1 });
+            await updateClosetStats(effectiveUserId, { outfitsCount: 1 });
 
             console.log('[AddOutfit] Outfit created:', outfitId);
             alert('Outfit added successfully!');
@@ -119,6 +121,28 @@ export default function AddOutfitPage() {
     return (
         <main>
             <Header />
+            {isImpersonating && (
+                <div style={{
+                    background: '#f59e0b',
+                    color: 'white',
+                    padding: '12px 24px',
+                    textAlign: 'center',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: '16px'
+                }}>
+                    <span>👁️ Admin View: Viewing as {impersonatedUserName}</span>
+                    <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={exitImpersonation}
+                    >
+                        Exit Admin View
+                    </Button>
+                </div>
+            )}
             <div className={styles.container}>
                 <div className={styles.header}>
                     <button onClick={() => router.back()} className={styles.backButton}>

@@ -7,6 +7,7 @@ import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 import { PublishClosetModal } from '@/components/features/curator/PublishClosetModal';
 import { getClosetByCurator, getOutfitsByCurator, getRentalsByCurator } from '@/lib/firestore';
+import { useAdminImpersonation } from '@/hooks/useAdminImpersonation';
 import { Closet } from '@/types';
 import styles from './page.module.css';
 import Link from 'next/link';
@@ -14,6 +15,7 @@ import Link from 'next/link';
 export default function CuratorDashboardPage() {
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
+    const { effectiveUserId, isImpersonating, impersonatedUserName, exitImpersonation } = useAdminImpersonation();
     const [closet, setCloset] = useState<Closet | null>(null);
     const [stats, setStats] = useState({ outfits: 0, rentals: 0, earnings: 0 });
     const [loading, setLoading] = useState(true);
@@ -21,14 +23,14 @@ export default function CuratorDashboardPage() {
 
     useEffect(() => {
         const fetchData = async () => {
-            if (!user) return;
+            if (!effectiveUserId) return;
 
             try {
-                const closetData = await getClosetByCurator(user.id);
+                const closetData = await getClosetByCurator(effectiveUserId);
                 setCloset(closetData);
 
-                const outfits = await getOutfitsByCurator(user.id);
-                const rentals = await getRentalsByCurator(user.id);
+                const outfits = await getOutfitsByCurator(effectiveUserId);
+                const rentals = await getRentalsByCurator(effectiveUserId);
 
                 const completedRentals = rentals.filter(r => r.status === 'completed');
                 const totalEarnings = completedRentals.reduce((sum, r) => sum + r.curatorEarnings, 0);
@@ -48,13 +50,13 @@ export default function CuratorDashboardPage() {
         if (!authLoading) {
             fetchData();
         }
-    }, [user, authLoading]);
+    }, [effectiveUserId, authLoading]);
 
     const handlePublishSuccess = (slug: string) => {
         setShowPublishModal(false);
         // Refresh closet data
-        if (user) {
-            getClosetByCurator(user.id).then(setCloset);
+        if (effectiveUserId) {
+            getClosetByCurator(effectiveUserId).then(setCloset);
         }
     };
 
@@ -88,11 +90,33 @@ export default function CuratorDashboardPage() {
     return (
         <main>
             <Header />
+            {isImpersonating && (
+                <div style={{
+                    background: '#f59e0b',
+                    color: 'white',
+                    padding: '12px 24px',
+                    textAlign: 'center',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: '16px'
+                }}>
+                    <span>👁️ Admin View: Viewing as {impersonatedUserName}</span>
+                    <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={exitImpersonation}
+                    >
+                        Exit Admin View
+                    </Button>
+                </div>
+            )}
             <div className={styles.container}>
                 <div className={styles.header}>
                     <div>
                         <h1>Curator Dashboard</h1>
-                        <p className={styles.subtitle}>Welcome back, {user.displayName}!</p>
+                        <p className={styles.subtitle}>Welcome back, {impersonatedUserName || user.displayName}!</p>
                     </div>
                     <div className={styles.statusBadge}>
                         {isPublished ? (

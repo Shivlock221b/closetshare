@@ -15,6 +15,7 @@ import {
     getAllRentals,
     getAllOutfits,
     getAllClosets,
+    getAllUsers,
     updateRentalStatus,
     deleteRental,
     deleteOutfit,
@@ -23,10 +24,10 @@ import {
     updateCloset,
     updateRentalTimeline,
 } from '@/lib/firestore';
-import { Rental, Outfit, Closet, RentalStatus } from '@/types';
+import { Rental, Outfit, Closet, RentalStatus, User } from '@/types';
 import styles from './page.module.css';
 
-type Tab = 'overview' | 'outfits' | 'closets' | 'rentals' | 'issues';
+type Tab = 'overview' | 'outfits' | 'closets' | 'users' | 'rentals' | 'issues';
 type EditMode = { type: 'rental' | 'outfit' | 'closet'; id: string } | null;
 
 const STATUS_OPTIONS: RentalStatus[] = [
@@ -63,6 +64,7 @@ export default function AdminConsolePage() {
     const [rentals, setRentals] = useState<Rental[]>([]);
     const [outfits, setOutfits] = useState<Outfit[]>([]);
     const [closets, setClosets] = useState<Closet[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(false);
 
     // Edit state
@@ -112,15 +114,17 @@ export default function AdminConsolePage() {
     const fetchAllData = async () => {
         setLoading(true);
         try {
-            const [rentalsData, outfitsData, closetsData] = await Promise.all([
+            const [rentalsData, outfitsData, closetsData, usersData] = await Promise.all([
                 getAllRentals(),
                 getAllOutfits(),
                 getAllClosets(),
+                getAllUsers(),
             ]);
             rentalsData.sort((a, b) => b.createdAt - a.createdAt);
             setRentals(rentalsData);
             setOutfits(outfitsData);
             setClosets(closetsData);
+            setUsers(usersData);
         } catch (error) {
             console.error('[Admin] Error fetching data:', error);
         } finally {
@@ -314,13 +318,14 @@ export default function AdminConsolePage() {
                 </div>
 
                 <div className={styles.tabs}>
-                    {(['overview', 'rentals', 'outfits', 'closets', 'issues'] as Tab[]).map(tab => (
+                    {(['overview', 'rentals', 'outfits', 'closets', 'users', 'issues'] as Tab[]).map(tab => (
                         <button
                             key={tab}
                             className={activeTab === tab ? styles.tabActive : styles.tab}
                             onClick={() => setActiveTab(tab)}
                         >
                             {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                            {tab === 'users' && ` (${users.length})`}
                             {tab === 'issues' && disputedRentals.length > 0 && (
                                 <span className={styles.badge}>{disputedRentals.length}</span>
                             )}
@@ -642,6 +647,63 @@ export default function AdminConsolePage() {
                                         >
                                             <Trash2 size={14} />
                                         </Button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Users Tab */}
+                {activeTab === 'users' && (
+                    <div className={styles.section}>
+                        <div className={styles.sectionHeader}>
+                            <h2>All Users ({users.length})</h2>
+                        </div>
+                        <div className={styles.table}>
+                            <div className={styles.tableHeader}>
+                                <div>Avatar</div>
+                                <div>Name</div>
+                                <div>Email</div>
+                                <div>Role</div>
+                                <div>Outfits</div>
+                                <div>Rentals</div>
+                                <div>Actions</div>
+                            </div>
+                            {users.map(user => (
+                                <div key={user.id} className={styles.tableRow}>
+                                    <div>
+                                        {user.avatarUrl ? (
+                                            <img src={user.avatarUrl} alt={user.displayName} className={styles.thumbImg} />
+                                        ) : (
+                                            <div className={styles.avatarPlaceholder}>👤</div>
+                                        )}
+                                    </div>
+                                    <div>{user.displayName}</div>
+                                    <div>{user.email}</div>
+                                    <div>
+                                        <span className={user.role === 'curator' ? styles.badgeActive : styles.badgeArchived}>
+                                            {user.role}
+                                        </span>
+                                    </div>
+                                    <div>{user.stats?.outfitsCount || 0}</div>
+                                    <div>{user.stats?.rentalsCount || 0}</div>
+                                    <div className={styles.actions}>
+                                        {user.role === 'curator' && (
+                                            <Button
+                                                size="sm"
+                                                variant="primary"
+                                                onClick={() => {
+                                                    // Store impersonation data in localStorage
+                                                    localStorage.setItem('admin_impersonate_user_id', user.id);
+                                                    localStorage.setItem('admin_impersonate_user_name', user.displayName);
+                                                    // Navigate to curator dashboard
+                                                    window.location.href = '/dashboard/curator';
+                                                }}
+                                            >
+                                                Access Dashboard
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                             ))}

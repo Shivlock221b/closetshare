@@ -9,6 +9,7 @@ import {
     getAllRentals,
     getAllOutfits,
     getAllClosets,
+    getAllUsers,
     updateRentalStatus,
     getRatingsForUser,
     getAllErrorLogs,
@@ -16,10 +17,10 @@ import {
     deleteErrorLog,
     type ErrorLog
 } from '@/lib/firestore';
-import { Rental, Outfit, Closet } from '@/types';
+import { Rental, Outfit, Closet, User } from '@/types';
 import styles from './page.module.css';
 
-type Tab = 'overview' | 'outfits' | 'curators' | 'rentals' | 'issues' | 'errors';
+type Tab = 'overview' | 'outfits' | 'curators' | 'users' | 'rentals' | 'issues' | 'errors';
 
 const STATUS_COLORS: Record<string, string> = {
     requested: '#f59e0b',
@@ -41,6 +42,7 @@ export default function AdminDashboard() {
     const [rentals, setRentals] = useState<Rental[]>([]);
     const [outfits, setOutfits] = useState<Outfit[]>([]);
     const [closets, setClosets] = useState<Closet[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
     const [errorLogs, setErrorLogs] = useState<ErrorLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -49,10 +51,11 @@ export default function AdminDashboard() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [rentalsData, outfitsData, closetsData, errorLogsData] = await Promise.all([
+                const [rentalsData, outfitsData, closetsData, usersData, errorLogsData] = await Promise.all([
                     getAllRentals(),
                     getAllOutfits(),
                     getAllClosets(),
+                    getAllUsers(),
                     getAllErrorLogs(),
                 ]);
                 // Sort rentals by createdAt descending
@@ -60,6 +63,7 @@ export default function AdminDashboard() {
                 setRentals(rentalsData);
                 setOutfits(outfitsData);
                 setClosets(closetsData);
+                setUsers(usersData);
 
                 // Sort error logs by timestamp descending
                 errorLogsData.sort((a, b) => b.timestamp - a.timestamp);
@@ -186,6 +190,12 @@ export default function AdminDashboard() {
                         onClick={() => setActiveTab('curators')}
                     >
                         Curators ({closets.length})
+                    </button>
+                    <button
+                        className={activeTab === 'users' ? styles.tabActive : styles.tab}
+                        onClick={() => setActiveTab('users')}
+                    >
+                        Users ({users.length})
                     </button>
                     <button
                         className={activeTab === 'rentals' ? styles.tabActive : styles.tab}
@@ -357,6 +367,60 @@ export default function AdminDashboard() {
                                     <div>{getUserRating(closet.curatorId)}</div>
                                     <div>₹{closet.stats.totalEarnings}</div>
                                 </Link>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Users Tab */}
+                {activeTab === 'users' && (
+                    <div className={styles.section}>
+                        <div className={styles.sectionHeader}>
+                            <h2>All Users</h2>
+                        </div>
+                        <div className={styles.table}>
+                            <div className={styles.tableHeader}>
+                                <div>Name</div>
+                                <div>Email</div>
+                                <div>Role</div>
+                                <div>Outfits</div>
+                                <div>Rentals</div>
+                                <div>Actions</div>
+                            </div>
+                            {users.map(user => (
+                                <div key={user.id} className={styles.tableRow}>
+                                    <div className={styles.outfitCell}>
+                                        {user.avatarUrl && (
+                                            <img src={user.avatarUrl} alt={user.displayName} className={styles.thumbImg} />
+                                        )}
+                                        {user.displayName}
+                                    </div>
+                                    <div>{user.email}</div>
+                                    <div>
+                                        <span className={user.role === 'curator' ? styles.badgeActive : styles.badgeArchived}>
+                                            {user.role}
+                                        </span>
+                                    </div>
+                                    <div>{user.stats?.outfitsCount || 0}</div>
+                                    <div>{user.stats?.rentalsCount || 0}</div>
+                                    <div className={styles.actions}>
+                                        {user.role === 'curator' && (
+                                            <Button
+                                                size="sm"
+                                                variant="primary"
+                                                onClick={() => {
+                                                    // Store impersonation data in localStorage
+                                                    localStorage.setItem('admin_impersonate_user_id', user.id);
+                                                    localStorage.setItem('admin_impersonate_user_name', user.displayName);
+                                                    // Navigate to curator dashboard
+                                                    window.location.href = '/dashboard/curator';
+                                                }}
+                                            >
+                                                Access Dashboard
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
                             ))}
                         </div>
                     </div>
