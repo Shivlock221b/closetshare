@@ -24,7 +24,6 @@
 .hero {
     width: 100%;
     max-width: 100%;
-    aspect-ratio: 16/9;
     position: relative;
     background-color: #F7F7F7;
     margin-bottom: 48px;
@@ -41,6 +40,8 @@
     background-color: #FFFFFF;
     max-width: 1120px;
     margin: 0 auto;
+    position: relative;
+    z-index: 1;
 }
 
 .title {
@@ -55,7 +56,6 @@
 
 @media (min-width: 1024px) {
     .hero {
-        aspect-ratio: 2/1;
         margin-bottom: 40px;
     }
 
