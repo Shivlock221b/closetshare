@@ -7,9 +7,10 @@ import { Header } from '@/components/layout/Header';
 import { ImageUpload } from '@/components/ui/ImageUpload';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { CleaningPricePopup } from '@/components/ui/CleaningPricePopup';
 import { getOutfitById, updateOutfit } from '@/lib/firestore';
 import { uploadMultipleImages, getOutfitImagePath, deleteImage } from '@/lib/storage';
-import { Outfit } from '@/types';
+import { Outfit, CleaningType } from '@/types';
 import styles from '../../add/page.module.css';
 
 export default function EditOutfitPage() {
@@ -21,6 +22,8 @@ export default function EditOutfitPage() {
     const [outfit, setOutfit] = useState<Outfit | null>(null);
     const [newImages, setNewImages] = useState<File[]>([]);
     const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+    const [showPricePopup, setShowPricePopup] = useState(false);
+    const [cleaningType, setCleaningType] = useState<CleaningType>('wash_iron');
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -41,6 +44,9 @@ export default function EditOutfitPage() {
                 if (data) {
                     setOutfit(data);
                     setExistingImageUrls(data.images);
+                    if (data.cleaningType) {
+                        setCleaningType(data.cleaningType);
+                    }
                     setFormData({
                         title: data.title,
                         description: data.description,
@@ -109,6 +115,7 @@ export default function EditOutfitPage() {
                 category: formData.category,
                 perNightPrice: perNightPrice,
                 securityDeposit: perNightPrice, // Equal to 1 night's rent
+                cleaningType: cleaningType,
                 tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
             });
 
@@ -320,6 +327,76 @@ export default function EditOutfitPage() {
                                 <p className={styles.depositHint}>Equal to 1 night's rent</p>
                             </div>
                         </div>
+                        <div className={styles.commissionBanner}>
+                            <span className={styles.commissionIcon}>🎉</span>
+                            <div>
+                                <strong>Zero Commission!</strong>
+                                <span>You keep 100% of your rental earnings</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Cleaning Options */}
+                    <div className={styles.section}>
+                        <div className={styles.cleaningHeader}>
+                            <h2 className={styles.sectionLabel}>Cleaning Upon Return</h2>
+                            <button
+                                type="button"
+                                className={styles.viewPricesButton}
+                                onClick={() => setShowPricePopup(true)}
+                            >
+                                📋 View Price List
+                            </button>
+                        </div>
+
+                        <p className={styles.cleaningDescription}>
+                            Select how this outfit should be cleaned after each rental to maintain hygiene and condition.
+                        </p>
+
+                        <div className={styles.cleaningOptions}>
+                            <label className={`${styles.cleaningOption} ${cleaningType === 'wash_iron' ? styles.cleaningOptionSelected : ''}`}>
+                                <input
+                                    type="radio"
+                                    name="cleaningType"
+                                    value="wash_iron"
+                                    checked={cleaningType === 'wash_iron'}
+                                    onChange={() => setCleaningType('wash_iron')}
+                                />
+                                <div className={styles.cleaningOptionContent}>
+                                    <span className={styles.cleaningIcon}>🧺</span>
+                                    <div>
+                                        <strong>Wash & Steam Iron</strong>
+                                        <span>Best for regular fabrics, cotton, linen</span>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <label className={`${styles.cleaningOption} ${cleaningType === 'dry_clean' ? styles.cleaningOptionSelected : ''}`}>
+                                <input
+                                    type="radio"
+                                    name="cleaningType"
+                                    value="dry_clean"
+                                    checked={cleaningType === 'dry_clean'}
+                                    onChange={() => setCleaningType('dry_clean')}
+                                />
+                                <div className={styles.cleaningOptionContent}>
+                                    <span className={styles.cleaningIcon}>✨</span>
+                                    <div>
+                                        <strong>Dry Clean</strong>
+                                        <span>Best for delicate, silk, ethnic, leather</span>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div className={styles.cleaningDisclaimer}>
+                            <span className={styles.disclaimerIcon}>ℹ️</span>
+                            <p>
+                                The cleaning cost will be deducted from your nightly rental earnings.
+                                This ensures your outfit is professionally cleaned and maintained in
+                                excellent condition upon return.
+                            </p>
+                        </div>
                     </div>
 
                     {/* Actions */}
@@ -337,6 +414,11 @@ export default function EditOutfitPage() {
                         </Button>
                     </div>
                 </form>
+
+                {/* Price Popup */}
+                {showPricePopup && (
+                    <CleaningPricePopup onClose={() => setShowPricePopup(false)} />
+                )}
             </div>
         </main>
     );

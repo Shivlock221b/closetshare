@@ -23,6 +23,8 @@ export interface User {
 
 export type OutfitStatus = 'active' | 'archived';
 
+export type CleaningType = 'wash_iron' | 'dry_clean';
+
 export interface Outfit {
     id: string;
     curatorId: string;
@@ -34,6 +36,7 @@ export interface Outfit {
     perNightPrice: number;
     securityDeposit: number; // Now equals perNightPrice (1 night)
     retailPrice?: number; // Full cost if outfit is destroyed
+    cleaningType: CleaningType; // Wash & Iron or Dry Clean
     tags: string[];
     availability: {
         enabled: boolean;

@@ -144,48 +144,48 @@ export default function OutfitPage() {
                         {closet.sizeProfile && (closet.sizeProfile.height || closet.sizeProfile.bodyType ||
                             closet.sizeProfile.shoeSize || closet.sizeProfile.bustChest ||
                             closet.sizeProfile.waist || closet.sizeProfile.hips) && (
-                            <div className={styles.sizeProfile}>
-                                <h3 className={styles.sizeProfileTitle}>Curator's Size Profile</h3>
-                                <div className={styles.sizeProfileGrid}>
-                                    {closet.sizeProfile.height && (
-                                        <div className={styles.sizeProfileItem}>
-                                            <span className={styles.sizeProfileLabel}>Height:</span>
-                                            <span className={styles.sizeProfileValue}>{closet.sizeProfile.height}</span>
-                                        </div>
-                                    )}
-                                    {closet.sizeProfile.bodyType && (
-                                        <div className={styles.sizeProfileItem}>
-                                            <span className={styles.sizeProfileLabel}>Body Type:</span>
-                                            <span className={styles.sizeProfileValue}>{closet.sizeProfile.bodyType.charAt(0).toUpperCase() + closet.sizeProfile.bodyType.slice(1)}</span>
-                                        </div>
-                                    )}
-                                    {closet.sizeProfile.shoeSize && (
-                                        <div className={styles.sizeProfileItem}>
-                                            <span className={styles.sizeProfileLabel}>Shoe Size:</span>
-                                            <span className={styles.sizeProfileValue}>{closet.sizeProfile.shoeSize}</span>
-                                        </div>
-                                    )}
-                                    {closet.sizeProfile.bustChest && (
-                                        <div className={styles.sizeProfileItem}>
-                                            <span className={styles.sizeProfileLabel}>Bust/Chest:</span>
-                                            <span className={styles.sizeProfileValue}>{closet.sizeProfile.bustChest}</span>
-                                        </div>
-                                    )}
-                                    {closet.sizeProfile.waist && (
-                                        <div className={styles.sizeProfileItem}>
-                                            <span className={styles.sizeProfileLabel}>Waist:</span>
-                                            <span className={styles.sizeProfileValue}>{closet.sizeProfile.waist}</span>
-                                        </div>
-                                    )}
-                                    {closet.sizeProfile.hips && (
-                                        <div className={styles.sizeProfileItem}>
-                                            <span className={styles.sizeProfileLabel}>Hips:</span>
-                                            <span className={styles.sizeProfileValue}>{closet.sizeProfile.hips}</span>
-                                        </div>
-                                    )}
+                                <div className={styles.sizeProfile}>
+                                    <h3 className={styles.sizeProfileTitle}>Curator's Size Profile</h3>
+                                    <div className={styles.sizeProfileGrid}>
+                                        {closet.sizeProfile.height && (
+                                            <div className={styles.sizeProfileItem}>
+                                                <span className={styles.sizeProfileLabel}>Height:</span>
+                                                <span className={styles.sizeProfileValue}>{closet.sizeProfile.height}</span>
+                                            </div>
+                                        )}
+                                        {closet.sizeProfile.bodyType && (
+                                            <div className={styles.sizeProfileItem}>
+                                                <span className={styles.sizeProfileLabel}>Body Type:</span>
+                                                <span className={styles.sizeProfileValue}>{closet.sizeProfile.bodyType.charAt(0).toUpperCase() + closet.sizeProfile.bodyType.slice(1)}</span>
+                                            </div>
+                                        )}
+                                        {closet.sizeProfile.shoeSize && (
+                                            <div className={styles.sizeProfileItem}>
+                                                <span className={styles.sizeProfileLabel}>Shoe Size:</span>
+                                                <span className={styles.sizeProfileValue}>{closet.sizeProfile.shoeSize}</span>
+                                            </div>
+                                        )}
+                                        {closet.sizeProfile.bustChest && (
+                                            <div className={styles.sizeProfileItem}>
+                                                <span className={styles.sizeProfileLabel}>Bust/Chest:</span>
+                                                <span className={styles.sizeProfileValue}>{closet.sizeProfile.bustChest}</span>
+                                            </div>
+                                        )}
+                                        {closet.sizeProfile.waist && (
+                                            <div className={styles.sizeProfileItem}>
+                                                <span className={styles.sizeProfileLabel}>Waist:</span>
+                                                <span className={styles.sizeProfileValue}>{closet.sizeProfile.waist}</span>
+                                            </div>
+                                        )}
+                                        {closet.sizeProfile.hips && (
+                                            <div className={styles.sizeProfileItem}>
+                                                <span className={styles.sizeProfileLabel}>Hips:</span>
+                                                <span className={styles.sizeProfileValue}>{closet.sizeProfile.hips}</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
                     </>
                 )}
 
@@ -209,6 +209,24 @@ export default function OutfitPage() {
                 <div className={styles.categorySection}>
                     <h3 className={styles.categoryTitle}>Outfit Category</h3>
                     <p className={styles.categoryValue}>{outfit.category}</p>
+                </div>
+
+                {/* Cleaning Info */}
+                <div className={styles.categorySection}>
+                    <h3 className={styles.categoryTitle}>Hygiene & Care</h3>
+                    <div className={styles.cleaningInfo}>
+                        <span className={styles.cleaningIcon}>
+                            {outfit.cleaningType === 'dry_clean' ? '✨' : '🧺'}
+                        </span>
+                        <span>
+                            {outfit.cleaningType === 'dry_clean'
+                                ? 'Professionally Dry Cleaned'
+                                : 'Professionally Washed & Steam Ironed'}
+                        </span>
+                    </div>
+                    <p className={styles.cleaningNote}>
+                        This item enters our quality control process after every rental to ensure it meets our hygiene standards.
+                    </p>
                 </div>
 
                 {/* Date Selection Section */}
