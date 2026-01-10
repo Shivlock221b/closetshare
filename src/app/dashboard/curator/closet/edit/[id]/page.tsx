@@ -8,6 +8,7 @@ import { ImageUpload } from '@/components/ui/ImageUpload';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { CleaningPricePopup } from '@/components/ui/CleaningPricePopup';
+import { BlockedDatesManager } from '@/components/ui/BlockedDatesManager';
 import { getOutfitById, updateOutfit } from '@/lib/firestore';
 import { uploadMultipleImages, getOutfitImagePath, deleteImage } from '@/lib/storage';
 import { Outfit, CleaningType } from '@/types';
@@ -24,6 +25,7 @@ export default function EditOutfitPage() {
     const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
     const [showPricePopup, setShowPricePopup] = useState(false);
     const [cleaningType, setCleaningType] = useState<CleaningType>('wash_iron');
+    const [blockedDates, setBlockedDates] = useState<number[]>([]);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -46,6 +48,9 @@ export default function EditOutfitPage() {
                     setExistingImageUrls(data.images);
                     if (data.cleaningType) {
                         setCleaningType(data.cleaningType);
+                    }
+                    if (data.availability) {
+                        setBlockedDates(data.availability.blockedDates || []);
                     }
                     setFormData({
                         title: data.title,
@@ -117,6 +122,10 @@ export default function EditOutfitPage() {
                 securityDeposit: perNightPrice, // Equal to 1 night's rent
                 cleaningType: cleaningType,
                 tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+                availability: {
+                    enabled: true,
+                    blockedDates: blockedDates,
+                },
             });
 
             console.log('[EditOutfit] Outfit updated:', outfitId);
@@ -397,6 +406,18 @@ export default function EditOutfitPage() {
                                 excellent condition upon return.
                             </p>
                         </div>
+                    </div>
+
+                    {/* Availability / Blocked Dates */}
+                    <div className={styles.section}>
+                        <h2 className={styles.sectionLabel}>Availability Calendar</h2>
+                        <p className={styles.sectionDescription}>
+                            Select dates when this outfit is unavailable (e.g., personal use). Renters won&apos;t be able to book these dates.
+                        </p>
+                        <BlockedDatesManager
+                            blockedDates={blockedDates}
+                            onChange={setBlockedDates}
+                        />
                     </div>
 
                     {/* Actions */}

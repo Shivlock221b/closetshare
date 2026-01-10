@@ -8,6 +8,7 @@ import { ImageUpload } from '@/components/ui/ImageUpload';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { CleaningPricePopup } from '@/components/ui/CleaningPricePopup';
+import { BlockedDatesManager } from '@/components/ui/BlockedDatesManager';
 import { uploadMultipleImages, getOutfitImagePath } from '@/lib/storage';
 import { createOutfit, updateClosetStats } from '@/lib/firestore';
 import { CleaningType } from '@/types';
@@ -20,6 +21,7 @@ export default function AddOutfitPage() {
     const [images, setImages] = useState<File[]>([]);
     const [showPricePopup, setShowPricePopup] = useState(false);
     const [cleaningType, setCleaningType] = useState<CleaningType>('wash_iron');
+    const [blockedDates, setBlockedDates] = useState<number[]>([]);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -98,7 +100,7 @@ export default function AddOutfitPage() {
                 tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
                 availability: {
                     enabled: true,
-                    blockedDates: [],
+                    blockedDates: blockedDates,
                 },
                 status: 'active',
                 stats: {
@@ -322,6 +324,19 @@ export default function AddOutfitPage() {
                         </div>
                     </div>
 
+
+                    {/* Availability / Blocked Dates */}
+                    <div className={styles.section}>
+                        <h2 className={styles.sectionLabel}>Availability Calendar</h2>
+                        <p className={styles.sectionDescription}>
+                            Select dates when this outfit is unavailable (e.g., personal use). Renters won&apos;t be able to book these dates.
+                        </p>
+                        <BlockedDatesManager
+                            blockedDates={blockedDates}
+                            onChange={setBlockedDates}
+                        />
+                    </div>
+
                     {/* Actions */}
                     <div className={styles.actions}>
                         <Button
@@ -339,10 +354,12 @@ export default function AddOutfitPage() {
                 </form>
 
                 {/* Price Popup */}
-                {showPricePopup && (
-                    <CleaningPricePopup onClose={() => setShowPricePopup(false)} />
-                )}
-            </div>
-        </main>
+                {
+                    showPricePopup && (
+                        <CleaningPricePopup onClose={() => setShowPricePopup(false)} />
+                    )
+                }
+            </div >
+        </main >
     );
 }

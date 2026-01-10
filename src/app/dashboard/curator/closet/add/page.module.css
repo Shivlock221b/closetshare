@@ -284,6 +284,13 @@
     color: #92400e;
 }
 
+.sectionDescription {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.5;
+}
+
 @media (max-width: 768px) {
     .container {
         padding: var(--spacing-md);

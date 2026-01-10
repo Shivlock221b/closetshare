@@ -42,6 +42,7 @@ export const MOCK_OUTFITS: Outfit[] = [
         category: 'dress',
         perNightPrice: 450,
         securityDeposit: 1000,
+        cleaningType: 'dry_clean',
         tags: ['Evening', 'Formal', 'Summer'],
         availability: { enabled: true, blockedDates: [] },
         status: 'active',
@@ -59,6 +60,7 @@ export const MOCK_OUTFITS: Outfit[] = [
         category: 'dress',
         perNightPrice: 550,
         securityDeposit: 1200,
+        cleaningType: 'dry_clean',
         tags: ['Party', 'Formal'],
         availability: { enabled: true, blockedDates: [] },
         status: 'active',
@@ -76,13 +78,14 @@ export const MOCK_OUTFITS: Outfit[] = [
         category: 'outerwear',
         perNightPrice: 600,
         securityDeposit: 1500,
+        cleaningType: 'dry_clean',
         tags: ['Casual', 'Edgy'],
         availability: { enabled: true, blockedDates: [] },
         status: 'active',
         stats: { rentalsCount: 5, rating: 5.0 },
         createdAt: Date.now() - 86400000 * 5,
         updatedAt: Date.now() - 86400000 * 5,
-    },
+    }
 ];
 
 export const MOCK_RENTALS: Rental[] = [
