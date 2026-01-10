@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, Package, Users, ShoppingBag, DollarSign, Clock } from 'lucide-react';
+import { AlertTriangle, Package, Users, ShoppingBag, DollarSign, Clock, UserPlus, Mail, Copy, Check, RefreshCw, Trash2 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
+import { CreateCuratorModal } from '@/components/features/admin/CreateCuratorModal';
 import {
     getAllRentals,
     getAllOutfits,
@@ -14,12 +15,15 @@ import {
     getAllErrorLogs,
     markErrorResolved,
     deleteErrorLog,
+    getAllCuratorInvites,
+    deleteCuratorInvite,
+    regenerateInviteToken,
     type ErrorLog
 } from '@/lib/firestore';
-import { Rental, Outfit, Closet } from '@/types';
+import { Rental, Outfit, Closet, CuratorInvite } from '@/types';
 import styles from './page.module.css';
 
-type Tab = 'overview' | 'outfits' | 'curators' | 'rentals' | 'issues' | 'errors';
+type Tab = 'overview' | 'outfits' | 'curators' | 'rentals' | 'issues' | 'errors' | 'invites';
 
 const STATUS_COLORS: Record<string, string> = {
     requested: '#f59e0b',
@@ -42,18 +46,22 @@ export default function AdminDashboard() {
     const [outfits, setOutfits] = useState<Outfit[]>([]);
     const [closets, setClosets] = useState<Closet[]>([]);
     const [errorLogs, setErrorLogs] = useState<ErrorLog[]>([]);
+    const [curatorInvites, setCuratorInvites] = useState<CuratorInvite[]>([]);
     const [loading, setLoading] = useState(true);
     const [updatingId, setUpdatingId] = useState<string | null>(null);
     const [userRatings, setUserRatings] = useState<Map<string, number>>(new Map());
+    const [showCreateCuratorModal, setShowCreateCuratorModal] = useState(false);
+    const [copiedInviteId, setCopiedInviteId] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [rentalsData, outfitsData, closetsData, errorLogsData] = await Promise.all([
+                const [rentalsData, outfitsData, closetsData, errorLogsData, invitesData] = await Promise.all([
                     getAllRentals(),
                     getAllOutfits(),
                     getAllClosets(),
                     getAllErrorLogs(),
+                    getAllCuratorInvites(),
                 ]);
                 // Sort rentals by createdAt descending
                 rentalsData.sort((a, b) => b.createdAt - a.createdAt);
@@ -63,6 +71,10 @@ export default function AdminDashboard() {
 
                 // Sort error logs by timestamp descending
                 errorLogsData.sort((a, b) => b.timestamp - a.timestamp);
+
+                // Sort invites by createdAt descending
+                invitesData.sort((a, b) => b.createdAt - a.createdAt);
+                setCuratorInvites(invitesData);
                 setErrorLogs(errorLogsData);
             } catch (error) {
                 console.error('[Admin] Error fetching data:', error);
@@ -135,6 +147,72 @@ export default function AdminDashboard() {
         return closet?.displayName || 'Unknown Curator';
     };
 
+    // Invite management functions
+    const copyInviteLink = (invite: CuratorInvite) => {
+        const fullUrl = `${window.location.origin}/claim/${invite.token}`;
+        navigator.clipboard.writeText(fullUrl);
+        setCopiedInviteId(invite.id);
+        setTimeout(() => setCopiedInviteId(null), 2000);
+    };
+
+    const handleRefreshInvite = async (inviteId: string) => {
+        try {
+            setUpdatingId(inviteId);
+            const newToken = await regenerateInviteToken(inviteId);
+            setCuratorInvites(prev => prev.map(inv =>
+                inv.id === inviteId
+                    ? { ...inv, token: newToken, status: 'pending' as const, expiresAt: Date.now() + (90 * 24 * 60 * 60 * 1000) }
+                    : inv
+            ));
+            alert('Invite token regenerated successfully!');
+        } catch (error) {
+            console.error('Error refreshing invite:', error);
+            alert('Failed to refresh invite token');
+        } finally {
+            setUpdatingId(null);
+        }
+    };
+
+    const handleDeleteInvite = async (inviteId: string) => {
+        if (!confirm('Are you sure you want to delete this invite? This action cannot be undone.')) {
+            return;
+        }
+        try {
+            setUpdatingId(inviteId);
+            await deleteCuratorInvite(inviteId);
+            setCuratorInvites(prev => prev.filter(inv => inv.id !== inviteId));
+        } catch (error) {
+            console.error('Error deleting invite:', error);
+            alert('Failed to delete invite');
+        } finally {
+            setUpdatingId(null);
+        }
+    };
+
+    const refreshInvites = async () => {
+        try {
+            const invitesData = await getAllCuratorInvites();
+            invitesData.sort((a, b) => b.createdAt - a.createdAt);
+            setCuratorInvites(invitesData);
+        } catch (error) {
+            console.error('Error refreshing invites:', error);
+        }
+    };
+
+    const getInviteStatusColor = (invite: CuratorInvite) => {
+        if (invite.status === 'claimed') return '#10b981';
+        if (invite.status === 'expired' || invite.expiresAt < Date.now()) return '#6b7280';
+        return '#f59e0b';
+    };
+
+    const getInviteStatusLabel = (invite: CuratorInvite) => {
+        if (invite.status === 'claimed') return 'Claimed';
+        if (invite.expiresAt < Date.now()) return 'Expired';
+        return 'Pending';
+    };
+
+    const pendingInvitesCount = curatorInvites.filter(i => i.status === 'pending' && i.expiresAt > Date.now()).length;
+
     // Calculate stats
     const totalRevenue = rentals
         .filter(r => ['paid', 'accepted', 'shipped', 'delivered', 'in_use', 'return_shipped', 'return_delivered', 'completed'].includes(r.status))
@@ -204,6 +282,13 @@ export default function AdminDashboard() {
                         onClick={() => setActiveTab('errors')}
                     >
                         Error Logs ({errorLogs.filter(e => !e.resolved).length})
+                    </button>
+                    <button
+                        className={activeTab === 'invites' ? styles.tabActive : styles.tab}
+                        onClick={() => setActiveTab('invites')}
+                    >
+                        <UserPlus size={16} style={{ marginRight: '4px' }} />
+                        Invites ({pendingInvitesCount})
                     </button>
                 </div>
 
@@ -520,21 +605,20 @@ export default function AdminDashboard() {
                                         key={error.id}
                                         className={`${styles.errorLogCard} ${error.resolved ? styles.resolved : ''}`}
                                         style={{
-                                            borderLeft: `4px solid ${
-                                                error.severity === 'critical' ? '#dc2626' :
+                                            borderLeft: `4px solid ${error.severity === 'critical' ? '#dc2626' :
                                                 error.severity === 'high' ? '#f59e0b' :
-                                                error.severity === 'medium' ? '#3b82f6' :
-                                                '#6b7280'
-                                            }`
+                                                    error.severity === 'medium' ? '#3b82f6' :
+                                                        '#6b7280'
+                                                }`
                                         }}
                                     >
                                         <div className={styles.errorLogHeader}>
                                             <div>
                                                 <span className={styles.errorSeverity} style={{
                                                     background: error.severity === 'critical' ? '#dc2626' :
-                                                               error.severity === 'high' ? '#f59e0b' :
-                                                               error.severity === 'medium' ? '#3b82f6' :
-                                                               '#6b7280'
+                                                        error.severity === 'high' ? '#f59e0b' :
+                                                            error.severity === 'medium' ? '#3b82f6' :
+                                                                '#6b7280'
                                                 }}>
                                                     {error.severity.toUpperCase()}
                                                 </span>
@@ -610,6 +694,122 @@ export default function AdminDashboard() {
                             </div>
                         )}
                     </div>
+                )}
+
+                {/* Invites Tab */}
+                {activeTab === 'invites' && (
+                    <div className={styles.section}>
+                        <div className={styles.sectionHeader}>
+                            <h2>Curator Invites</h2>
+                            <Button
+                                onClick={() => setShowCreateCuratorModal(true)}
+                                variant="primary"
+                            >
+                                <UserPlus size={16} style={{ marginRight: '6px' }} />
+                                Create Curator
+                            </Button>
+                        </div>
+
+                        <p style={{ color: 'var(--color-text-muted)', marginBottom: 'var(--spacing-md)', fontSize: '0.875rem' }}>
+                            Create curator accounts and generate invite links. Curators can claim their accounts by signing in with Google using the invite link.
+                        </p>
+
+                        {curatorInvites.length > 0 ? (
+                            <div className={styles.table}>
+                                <div className={styles.tableHeader} style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1fr 2fr' }}>
+                                    <div>Curator</div>
+                                    <div>Email</div>
+                                    <div>Status</div>
+                                    <div>Created</div>
+                                    <div>Actions</div>
+                                </div>
+                                {curatorInvites.map(invite => (
+                                    <div
+                                        key={invite.id}
+                                        className={styles.tableRow}
+                                        style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1fr 2fr' }}
+                                    >
+                                        <div className={styles.outfitCell}>
+                                            <Mail size={18} style={{ color: 'var(--color-coral)' }} />
+                                            {invite.displayName}
+                                        </div>
+                                        <div style={{ fontSize: '0.875rem' }}>{invite.email}</div>
+                                        <div>
+                                            <span
+                                                className={styles.statusBadge}
+                                                style={{ backgroundColor: getInviteStatusColor(invite) }}
+                                            >
+                                                {getInviteStatusLabel(invite)}
+                                            </span>
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                                            {formatDate(invite.createdAt)}
+                                        </div>
+                                        <div className={styles.actions}>
+                                            {invite.status !== 'claimed' && (
+                                                <>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={() => copyInviteLink(invite)}
+                                                        title="Copy invite link"
+                                                    >
+                                                        {copiedInviteId === invite.id ? (
+                                                            <Check size={14} />
+                                                        ) : (
+                                                            <Copy size={14} />
+                                                        )}
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={() => handleRefreshInvite(invite.id)}
+                                                        disabled={updatingId === invite.id}
+                                                        title="Regenerate token"
+                                                    >
+                                                        <RefreshCw size={14} />
+                                                    </Button>
+                                                </>
+                                            )}
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => handleDeleteInvite(invite.id)}
+                                                disabled={updatingId === invite.id}
+                                                title="Delete invite"
+                                            >
+                                                <Trash2 size={14} />
+                                            </Button>
+                                            {invite.status === 'claimed' && (
+                                                <Link href={`/c/${closets.find(c => c.curatorId === invite.curatorId)?.slug || ''}`}>
+                                                    <Button size="sm" variant="ghost">
+                                                        View Closet
+                                                    </Button>
+                                                </Link>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className={styles.emptyState}>
+                                <UserPlus size={48} style={{ color: 'var(--color-text-muted)', marginBottom: 'var(--spacing-md)' }} />
+                                <p>No curator invites yet. Click &quot;Create Curator&quot; to onboard a new curator.</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Create Curator Modal */}
+                {showCreateCuratorModal && (
+                    <CreateCuratorModal
+                        onClose={() => setShowCreateCuratorModal(false)}
+                        onSuccess={() => {
+                            refreshInvites();
+                            // Also refresh closets to get the new one
+                            getAllClosets().then(setClosets);
+                        }}
+                    />
                 )}
             </div>
         </main>

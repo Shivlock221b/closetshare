@@ -13,7 +13,7 @@ import {
     Timestamp
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { Rental, Outfit, Closet, TimelineEntry, RentalStatus, Rating } from '@/types';
+import { Rental, Outfit, Closet, TimelineEntry, RentalStatus, Rating, CuratorInvite } from '@/types';
 
 /**
  * Create a new rental in Firestore
@@ -1555,3 +1555,320 @@ export const deleteErrorLog = async (errorId: string): Promise<void> => {
         throw error;
     }
 };
+
+// ============================================
+// CURATOR INVITE FUNCTIONS (Hybrid Onboarding)
+// ============================================
+
+/**
+ * Generate a unique invite token
+ */
+const generateInviteToken = (): string => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let token = '';
+    for (let i = 0; i < 32; i++) {
+        token += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return token;
+};
+
+/**
+ * Create a pre-registered curator with closet and generate an invite token
+ * This is used by admins to onboard curators without them logging in
+ */
+export const createCuratorWithInvite = async (curatorData: {
+    email: string;
+    displayName: string;
+    bio?: string;
+    mobileNumber?: string;
+    upiId?: string;
+    avatarUrl?: string;
+    isPublished?: boolean;
+}): Promise<{ curatorId: string; inviteToken: string; inviteUrl: string }> => {
+    try {
+        // Generate a unique curator ID
+        const curatorId = `admin_created_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+
+        // Generate slug from display name
+        const slug = generateClosetSlug(curatorData.displayName);
+
+        // Create the closet document
+        const closetRef = doc(db, 'closets', curatorId);
+        await setDoc(closetRef, {
+            id: curatorId,
+            curatorId,
+            slug,
+            displayName: curatorData.displayName,
+            bio: curatorData.bio || '',
+            avatarUrl: curatorData.avatarUrl || '',
+            mobileNumber: curatorData.mobileNumber || '',
+            upiId: curatorData.upiId || '',
+            isPublished: curatorData.isPublished || false,
+            status: 'approved', // Pre-approved by admin
+            stats: {
+                outfitsCount: 0,
+                rentalsCount: 0,
+                totalEarnings: 0,
+                rating: 0,
+            },
+            adminCreated: true, // Flag to identify admin-created curators
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            publishedAt: curatorData.isPublished ? serverTimestamp() : null,
+        });
+
+        // Generate invite token
+        const inviteToken = generateInviteToken();
+        const inviteId = `invite_${curatorId}`;
+
+        // Create the invite document
+        const inviteRef = doc(db, 'curatorInvites', inviteId);
+        await setDoc(inviteRef, {
+            id: inviteId,
+            token: inviteToken,
+            curatorId,
+            email: curatorData.email,
+            displayName: curatorData.displayName,
+            status: 'pending',
+            createdAt: Date.now(),
+            expiresAt: Date.now() + (90 * 24 * 60 * 60 * 1000), // 90 days expiry
+        });
+
+        console.log(`[Firestore] Created curator ${curatorId} with invite token`);
+
+        return {
+            curatorId,
+            inviteToken,
+            inviteUrl: `/claim/${inviteToken}`,
+        };
+    } catch (error) {
+        console.error('Error creating curator with invite:', error);
+        throw error;
+    }
+};
+
+/**
+ * Get curator invite by token
+ */
+export const getInviteByToken = async (token: string): Promise<CuratorInvite | null> => {
+    try {
+        const invitesRef = collection(db, 'curatorInvites');
+        const q = query(invitesRef, where('token', '==', token));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+            return null;
+        }
+
+        const inviteDoc = snapshot.docs[0];
+        return { id: inviteDoc.id, ...inviteDoc.data() } as CuratorInvite;
+    } catch (error) {
+        console.error('Error getting invite by token:', error);
+        throw error;
+    }
+};
+
+/**
+ * Get curator invite by email (to check if there's a pending invite for a user)
+ */
+export const getInviteByEmail = async (email: string): Promise<CuratorInvite | null> => {
+    try {
+        const invitesRef = collection(db, 'curatorInvites');
+        const q = query(
+            invitesRef,
+            where('email', '==', email.toLowerCase()),
+            where('status', '==', 'pending')
+        );
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+            return null;
+        }
+
+        const inviteDoc = snapshot.docs[0];
+        return { id: inviteDoc.id, ...inviteDoc.data() } as CuratorInvite;
+    } catch (error) {
+        console.error('Error getting invite by email:', error);
+        return null;
+    }
+};
+
+/**
+ * Claim a curator invite - links the pre-created closet to the authenticated user
+ */
+export const claimCuratorInvite = async (
+    token: string,
+    userId: string,
+    userEmail: string,
+    userDisplayName: string,
+    userAvatarUrl?: string
+): Promise<{ success: boolean; closetSlug?: string; error?: string }> => {
+    try {
+        // Get the invite
+        const invite = await getInviteByToken(token);
+
+        if (!invite) {
+            return { success: false, error: 'Invalid invite token' };
+        }
+
+        if (invite.status === 'claimed') {
+            return { success: false, error: 'This invite has already been claimed' };
+        }
+
+        if (invite.status === 'expired' || invite.expiresAt < Date.now()) {
+            return { success: false, error: 'This invite has expired' };
+        }
+
+        // Get the pre-created closet
+        const closetRef = doc(db, 'closets', invite.curatorId);
+        const closetSnap = await getDoc(closetRef);
+
+        if (!closetSnap.exists()) {
+            return { success: false, error: 'Curator closet not found' };
+        }
+
+        const closetData = closetSnap.data() as Closet;
+
+        // Update the closet to link it to the authenticated user
+        await updateDoc(closetRef, {
+            linkedUserId: userId,
+            linkedAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        });
+
+        // Create or update the user document
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+            // Update existing user to curator role
+            await updateDoc(userRef, {
+                role: 'curator',
+                publicClosetSlug: closetData.slug,
+                linkedClosetId: invite.curatorId,
+                'curatorProfile.isPublished': closetData.isPublished,
+                'curatorProfile.mobileNumber': closetData.mobileNumber || '',
+                'curatorProfile.upiId': closetData.upiId || '',
+                updatedAt: serverTimestamp(),
+            });
+        } else {
+            // Create new user document
+            await setDoc(userRef, {
+                id: userId,
+                email: userEmail,
+                displayName: userDisplayName,
+                avatarUrl: userAvatarUrl || '',
+                role: 'curator',
+                publicClosetSlug: closetData.slug,
+                linkedClosetId: invite.curatorId,
+                curatorProfile: {
+                    isPublished: closetData.isPublished,
+                    mobileNumber: closetData.mobileNumber || '',
+                    upiId: closetData.upiId || '',
+                },
+                stats: {
+                    outfitsCount: closetData.stats.outfitsCount,
+                    rentalsCount: closetData.stats.rentalsCount,
+                    rating: closetData.stats.rating,
+                },
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            });
+        }
+
+        // Update the invite to claimed
+        const inviteRef = doc(db, 'curatorInvites', invite.id);
+        await updateDoc(inviteRef, {
+            status: 'claimed',
+            claimedAt: Date.now(),
+            claimedByUserId: userId,
+        });
+
+        console.log(`[Firestore] Curator invite claimed by user ${userId}`);
+
+        return { success: true, closetSlug: closetData.slug };
+    } catch (error) {
+        console.error('Error claiming curator invite:', error);
+        throw error;
+    }
+};
+
+/**
+ * Get all curator invites (admin only)
+ */
+export const getAllCuratorInvites = async (): Promise<CuratorInvite[]> => {
+    try {
+        const invitesRef = collection(db, 'curatorInvites');
+        const snapshot = await getDocs(invitesRef);
+
+        return snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+        })) as CuratorInvite[];
+    } catch (error) {
+        console.error('Error fetching curator invites:', error);
+        throw error;
+    }
+};
+
+/**
+ * Delete a curator invite (admin only)
+ */
+export const deleteCuratorInvite = async (inviteId: string): Promise<void> => {
+    try {
+        const inviteRef = doc(db, 'curatorInvites', inviteId);
+        await deleteDoc(inviteRef);
+    } catch (error) {
+        console.error('Error deleting curator invite:', error);
+        throw error;
+    }
+};
+
+/**
+ * Resend/regenerate invite token (admin only)
+ */
+export const regenerateInviteToken = async (inviteId: string): Promise<string> => {
+    try {
+        const inviteRef = doc(db, 'curatorInvites', inviteId);
+        const newToken = generateInviteToken();
+
+        await updateDoc(inviteRef, {
+            token: newToken,
+            status: 'pending',
+            expiresAt: Date.now() + (90 * 24 * 60 * 60 * 1000), // Reset to 90 days
+        });
+
+        return newToken;
+    } catch (error) {
+        console.error('Error regenerating invite token:', error);
+        throw error;
+    }
+};
+
+/**
+ * Get closet by curator ID - used for accessing pre-created closets
+ * This is an alias/enhancement to work with admin-created curators
+ */
+export const getClosetByCuratorIdOrLinkedUser = async (userId: string): Promise<Closet | null> => {
+    try {
+        // First try to get by curatorId (normal flow)
+        let closet = await getClosetByCurator(userId);
+        if (closet) return closet;
+
+        // Then try to find a closet linked to this user
+        const closetsRef = collection(db, 'closets');
+        const q = query(closetsRef, where('linkedUserId', '==', userId));
+        const snapshot = await getDocs(q);
+
+        if (!snapshot.empty) {
+            const doc = snapshot.docs[0];
+            return { id: doc.id, ...doc.data() } as Closet;
+        }
+
+        return null;
+    } catch (error) {
+        console.error('Error getting closet by curator ID or linked user:', error);
+        return null;
+    }
+};
+

@@ -227,3 +227,18 @@ export interface Closet {
     createdAt: number;
     updatedAt: number;
 }
+
+export type CuratorInviteStatus = 'pending' | 'claimed' | 'expired';
+
+export interface CuratorInvite {
+    id: string;
+    token: string;
+    curatorId: string;           // Pre-created curator ID (closet document ID)
+    email: string;               // Email of the curator to invite
+    displayName: string;         // Display name for the curator
+    status: CuratorInviteStatus;
+    createdAt: number;
+    expiresAt: number;           // Token expiration time
+    claimedAt?: number;
+    claimedByUserId?: string;    // Firebase Auth UID after claiming
+}

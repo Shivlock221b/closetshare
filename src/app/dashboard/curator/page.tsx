@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
 import { PublishClosetModal } from '@/components/features/curator/PublishClosetModal';
-import { getClosetByCurator, getOutfitsByCurator, getRentalsByCurator } from '@/lib/firestore';
+import { getClosetByCurator, getClosetByCuratorIdOrLinkedUser, getOutfitsByCurator, getRentalsByCurator } from '@/lib/firestore';
 import { Closet } from '@/types';
 import styles from './page.module.css';
 import Link from 'next/link';
@@ -24,11 +24,15 @@ export default function CuratorDashboardPage() {
             if (!user) return;
 
             try {
-                const closetData = await getClosetByCurator(user.id);
+                // Use enhanced lookup that also checks for linked closets (admin-created)
+                const closetData = await getClosetByCuratorIdOrLinkedUser(user.id);
                 setCloset(closetData);
 
-                const outfits = await getOutfitsByCurator(user.id);
-                const rentals = await getRentalsByCurator(user.id);
+                // If this is a linked closet, we need to use the closet's curatorId for outfits/rentals
+                const curatorIdForData = closetData?.curatorId || user.id;
+
+                const outfits = await getOutfitsByCurator(curatorIdForData);
+                const rentals = await getRentalsByCurator(curatorIdForData);
 
                 const completedRentals = rentals.filter(r => r.status === 'completed');
                 const totalEarnings = completedRentals.reduce((sum, r) => sum + r.curatorEarnings, 0);
@@ -54,7 +58,7 @@ export default function CuratorDashboardPage() {
         setShowPublishModal(false);
         // Refresh closet data
         if (user) {
-            getClosetByCurator(user.id).then(setCloset);
+            getClosetByCuratorIdOrLinkedUser(user.id).then(setCloset);
         }
     };
 
