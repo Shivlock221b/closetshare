@@ -14,6 +14,17 @@ import { createOutfit, updateClosetStats } from '@/lib/firestore';
 import { CleaningType } from '@/types';
 import styles from './page.module.css';
 
+const CATEGORY_OPTIONS = [
+    'Winter wear', 'Summer wear', 'Party wear',
+    'Professional/Corporate wear', 'Ethnic wear',
+    'Westernwear', 'Footwear', 'Accessories'
+];
+
+const INCLUDED_ITEMS_OPTIONS = [
+    'Dress', 'Top', 'Bottom', 'Outerwear',
+    'Shoes', 'Accessories', 'Complete Set'
+];
+
 export default function AddOutfitPage() {
     const router = useRouter();
     const { user } = useAuth();
@@ -22,6 +33,7 @@ export default function AddOutfitPage() {
     const [showPricePopup, setShowPricePopup] = useState(false);
     const [cleaningType, setCleaningType] = useState<CleaningType>('wash_iron');
     const [blockedDates, setBlockedDates] = useState<number[]>([]);
+    const [itemsIncluded, setItemsIncluded] = useState<string[]>([]);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -29,6 +41,7 @@ export default function AddOutfitPage() {
         size: '',
         perNightPrice: '',
         securityDeposit: '',
+        retailPrice: '',
         tags: '',
     });
 
@@ -41,6 +54,16 @@ export default function AddOutfitPage() {
                 updates.securityDeposit = value;
             }
             return { ...prev, ...updates };
+        });
+    };
+
+    const handleIncludedItemToggle = (item: string) => {
+        setItemsIncluded(prev => {
+            if (prev.includes(item)) {
+                return prev.filter(i => i !== item);
+            } else {
+                return [...prev, item];
+            }
         });
     };
 
@@ -69,10 +92,21 @@ export default function AddOutfitPage() {
             return;
         }
 
+        const retailPrice = parseFloat(formData.retailPrice);
+        if (isNaN(retailPrice) || retailPrice <= 0) {
+            alert('Please enter a valid retail price greater than 0');
+            return;
+        }
+
         // Validate security deposit
         const deposit = parseFloat(formData.securityDeposit);
         if (isNaN(deposit) || deposit < 0) {
             alert('Please enter a valid security deposit (0 or greater)');
+            return;
+        }
+
+        if (itemsIncluded.length === 0) {
+            alert('Please select at least one item included in the outfit');
             return;
         }
 
@@ -96,6 +130,8 @@ export default function AddOutfitPage() {
                 category: formData.category,
                 perNightPrice: parseFloat(formData.perNightPrice),
                 securityDeposit: parseFloat(formData.securityDeposit),
+                retailPrice: parseFloat(formData.retailPrice),
+                itemsIncluded: itemsIncluded,
                 cleaningType: cleaningType,
                 tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
                 availability: {
@@ -187,13 +223,9 @@ export default function AddOutfitPage() {
                                     className={styles.select}
                                 >
                                     <option value="">Select category</option>
-                                    <option value="dress">Dress</option>
-                                    <option value="top">Top</option>
-                                    <option value="bottom">Bottom</option>
-                                    <option value="outerwear">Outerwear</option>
-                                    <option value="accessories">Accessories</option>
-                                    <option value="shoes">Shoes</option>
-                                    <option value="set">Complete Set</option>
+                                    {CATEGORY_OPTIONS.map(cat => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
                                 </select>
                             </div>
 
@@ -226,6 +258,24 @@ export default function AddOutfitPage() {
                             onChange={handleInputChange}
                             placeholder="e.g., vintage, floral, summer, boho"
                         />
+
+                        {/* What's Included */}
+                        <div className={styles.field}>
+                            <label className={styles.sectionLabel} style={{ fontSize: '14px' }}>What&apos;s Included *</label>
+                            <div className={styles.checkboxGrid}>
+                                {INCLUDED_ITEMS_OPTIONS.map(item => (
+                                    <label key={item} className={styles.checkboxLabel}>
+                                        <input
+                                            type="checkbox"
+                                            checked={itemsIncluded.includes(item)}
+                                            onChange={() => handleIncludedItemToggle(item)}
+                                            className={styles.checkbox}
+                                        />
+                                        {item}
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
                     </div>
 
                     {/* Pricing */}
@@ -239,6 +289,18 @@ export default function AddOutfitPage() {
                                 value={formData.perNightPrice}
                                 onChange={handleInputChange}
                                 placeholder="450"
+                                required
+                                min="0"
+                                step="1"
+                            />
+
+                            <Input
+                                label="Total Retail Price (₹) *"
+                                name="retailPrice"
+                                type="number"
+                                value={formData.retailPrice}
+                                onChange={handleInputChange}
+                                placeholder="5000"
                                 required
                                 min="0"
                                 step="1"

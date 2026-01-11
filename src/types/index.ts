@@ -25,6 +25,25 @@ export type OutfitStatus = 'active' | 'archived';
 
 export type CleaningType = 'wash_iron' | 'dry_clean';
 
+export type OutfitCategory =
+    | 'Winter wear'
+    | 'Summer wear'
+    | 'Party wear'
+    | 'Professional/Corporate wear'
+    | 'Ethnic wear'
+    | 'Westernwear'
+    | 'Footwear'
+    | 'Accessories';
+
+export type OutfitIncludedItem =
+    | 'Dress'
+    | 'Top'
+    | 'Bottom'
+    | 'Outerwear'
+    | 'Shoes'
+    | 'Accessories'
+    | 'Complete Set';
+
 export interface Outfit {
     id: string;
     curatorId: string;
@@ -32,10 +51,11 @@ export interface Outfit {
     description: string;
     images: string[];
     size: string;
-    category: string;
+    category: string; // Using string to allow flexibility but we'll enforce values in UI
     perNightPrice: number;
     securityDeposit: number; // Now equals perNightPrice (1 night)
-    retailPrice?: number; // Full cost if outfit is destroyed
+    retailPrice: number; // Full cost of the outfit
+    itemsIncluded: string[]; // List of items included in the rent
     cleaningType: CleaningType; // Wash & Iron or Dry Clean
     tags: string[];
     availability: {

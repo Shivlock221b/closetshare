@@ -205,10 +205,25 @@ export default function OutfitPage() {
                     ))}
                 </div>
 
-                {/* Outfit Category Section */}
+                {/* Outfit Details Section */}
                 <div className={styles.categorySection}>
-                    <h3 className={styles.categoryTitle}>Outfit Category</h3>
-                    <p className={styles.categoryValue}>{outfit.category}</p>
+                    <h3 className={styles.categoryTitle}>Outfit Details</h3>
+                    <div className={styles.detailsGrid}>
+                        <div className={styles.detailItem}>
+                            <span className={styles.detailLabel}>Category</span>
+                            <span className={styles.detailValue}>{outfit.category}</span>
+                        </div>
+                        <div className={styles.detailItem}>
+                            <span className={styles.detailLabel}>Retail Price</span>
+                            <span className={styles.detailValue}>₹{outfit.retailPrice?.toLocaleString() || 'N/A'}</span>
+                        </div>
+                        {outfit.itemsIncluded && outfit.itemsIncluded.length > 0 && (
+                            <div className={styles.detailItem}>
+                                <span className={styles.detailLabel}>What&apos;s Included</span>
+                                <span className={styles.detailValue}>{outfit.itemsIncluded.join(', ')}</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Cleaning Info */}

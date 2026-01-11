@@ -14,6 +14,17 @@ import { uploadMultipleImages, getOutfitImagePath, deleteImage } from '@/lib/sto
 import { Outfit, CleaningType } from '@/types';
 import styles from '../../add/page.module.css';
 
+const CATEGORY_OPTIONS = [
+    'Winter wear', 'Summer wear', 'Party wear',
+    'Professional/Corporate wear', 'Ethnic wear',
+    'Westernwear', 'Footwear', 'Accessories'
+];
+
+const INCLUDED_ITEMS_OPTIONS = [
+    'Dress', 'Top', 'Bottom', 'Outerwear',
+    'Shoes', 'Accessories', 'Complete Set'
+];
+
 export default function EditOutfitPage() {
     const router = useRouter();
     const params = useParams();
@@ -26,12 +37,14 @@ export default function EditOutfitPage() {
     const [showPricePopup, setShowPricePopup] = useState(false);
     const [cleaningType, setCleaningType] = useState<CleaningType>('wash_iron');
     const [blockedDates, setBlockedDates] = useState<number[]>([]);
+    const [itemsIncluded, setItemsIncluded] = useState<string[]>([]);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
         category: '',
         size: '',
         perNightPrice: '',
+        retailPrice: '',
         tags: '',
     });
 
@@ -52,12 +65,16 @@ export default function EditOutfitPage() {
                     if (data.availability) {
                         setBlockedDates(data.availability.blockedDates || []);
                     }
+                    if (data.itemsIncluded) {
+                        setItemsIncluded(data.itemsIncluded);
+                    }
                     setFormData({
                         title: data.title,
                         description: data.description,
                         category: data.category,
                         size: data.size,
                         perNightPrice: data.perNightPrice.toString(),
+                        retailPrice: data.retailPrice ? data.retailPrice.toString() : '',
                         tags: data.tags.join(', '),
                     });
                 }
@@ -78,6 +95,16 @@ export default function EditOutfitPage() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleIncludedItemToggle = (item: string) => {
+        setItemsIncluded(prev => {
+            if (prev.includes(item)) {
+                return prev.filter(i => i !== item);
+            } else {
+                return [...prev, item];
+            }
+        });
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -95,6 +122,17 @@ export default function EditOutfitPage() {
 
         if (price > 100000) {
             alert('Price seems unusually high. Please verify.');
+            return;
+        }
+
+        const retailPrice = parseFloat(formData.retailPrice);
+        if (isNaN(retailPrice) || retailPrice <= 0) {
+            alert('Please enter a valid retail price greater than 0');
+            return;
+        }
+
+        if (itemsIncluded.length === 0) {
+            alert('Please select at least one item included in the outfit');
             return;
         }
 
@@ -120,6 +158,8 @@ export default function EditOutfitPage() {
                 category: formData.category,
                 perNightPrice: perNightPrice,
                 securityDeposit: perNightPrice, // Equal to 1 night's rent
+                retailPrice: parseFloat(formData.retailPrice),
+                itemsIncluded: itemsIncluded,
                 cleaningType: cleaningType,
                 tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
                 availability: {
@@ -271,13 +311,9 @@ export default function EditOutfitPage() {
                                     className={styles.select}
                                 >
                                     <option value="">Select category</option>
-                                    <option value="dress">Dress</option>
-                                    <option value="top">Top</option>
-                                    <option value="bottom">Bottom</option>
-                                    <option value="outerwear">Outerwear</option>
-                                    <option value="accessories">Accessories</option>
-                                    <option value="shoes">Shoes</option>
-                                    <option value="set">Complete Set</option>
+                                    {CATEGORY_OPTIONS.map(cat => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
                                 </select>
                             </div>
 
@@ -310,6 +346,24 @@ export default function EditOutfitPage() {
                             onChange={handleInputChange}
                             placeholder="e.g., vintage, floral, summer, boho"
                         />
+
+                        {/* What's Included */}
+                        <div className={styles.field}>
+                            <label className={styles.sectionLabel} style={{ fontSize: '14px' }}>What&apos;s Included *</label>
+                            <div className={styles.checkboxGrid}>
+                                {INCLUDED_ITEMS_OPTIONS.map(item => (
+                                    <label key={item} className={styles.checkboxLabel}>
+                                        <input
+                                            type="checkbox"
+                                            checked={itemsIncluded.includes(item)}
+                                            onChange={() => handleIncludedItemToggle(item)}
+                                            className={styles.checkbox}
+                                        />
+                                        {item}
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
                     </div>
 
                     {/* Pricing */}
@@ -323,6 +377,18 @@ export default function EditOutfitPage() {
                                 value={formData.perNightPrice}
                                 onChange={handleInputChange}
                                 placeholder="450"
+                                required
+                                min="0"
+                                step="1"
+                            />
+
+                            <Input
+                                label="Total Retail Price (₹) *"
+                                name="retailPrice"
+                                type="number"
+                                value={formData.retailPrice}
+                                onChange={handleInputChange}
+                                placeholder="5000"
                                 required
                                 min="0"
                                 step="1"
