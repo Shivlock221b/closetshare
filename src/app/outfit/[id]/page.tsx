@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { AlertCircle, Check, ShoppingBag } from 'lucide-react';
+import { AlertCircle, Check, ShoppingBag, Tag, Ruler, IndianRupee, Layers } from 'lucide-react';
 import styles from './page.module.css';
 import { Button } from '@/components/ui/Button';
 import { Header } from '@/components/layout/Header';
@@ -199,7 +199,6 @@ export default function OutfitPage() {
                 <p className={styles.description}>{outfit.description}</p>
 
                 <div className={styles.tags}>
-                    <span className={styles.tag}>Size {outfit.size}</span>
                     {outfit.tags.map(tag => (
                         <span key={tag} className={styles.tag}>{tag}</span>
                     ))}
@@ -209,18 +208,37 @@ export default function OutfitPage() {
                 <div className={styles.categorySection}>
                     <h3 className={styles.categoryTitle}>Outfit Details</h3>
                     <div className={styles.detailsGrid}>
-                        <div className={styles.detailItem}>
-                            <span className={styles.detailLabel}>Category</span>
-                            <span className={styles.detailValue}>{outfit.category}</span>
+                        <div className={styles.detailCard}>
+                            <div className={styles.detailIconWrapper}><Tag size={20} /></div>
+                            <div>
+                                <span className={styles.detailLabel}>Category</span>
+                                <span className={styles.detailValue}>{outfit.category}</span>
+                            </div>
                         </div>
-                        <div className={styles.detailItem}>
-                            <span className={styles.detailLabel}>Retail Price</span>
-                            <span className={styles.detailValue}>₹{outfit.retailPrice?.toLocaleString() || 'N/A'}</span>
+
+                        <div className={styles.detailCard}>
+                            <div className={styles.detailIconWrapper}><Ruler size={20} /></div>
+                            <div>
+                                <span className={styles.detailLabel}>Size</span>
+                                <span className={styles.detailValue}>{outfit.size}</span>
+                            </div>
                         </div>
+
+                        <div className={styles.detailCard}>
+                            <div className={styles.detailIconWrapper}><IndianRupee size={20} /></div>
+                            <div>
+                                <span className={styles.detailLabel}>Retail Price</span>
+                                <span className={styles.detailValue}>₹{outfit.retailPrice?.toLocaleString() || 'N/A'}</span>
+                            </div>
+                        </div>
+
                         {outfit.itemsIncluded && outfit.itemsIncluded.length > 0 && (
-                            <div className={styles.detailItem}>
-                                <span className={styles.detailLabel}>What&apos;s Included</span>
-                                <span className={styles.detailValue}>{outfit.itemsIncluded.join(', ')}</span>
+                            <div className={styles.detailCard}>
+                                <div className={styles.detailIconWrapper}><Layers size={20} /></div>
+                                <div>
+                                    <span className={styles.detailLabel}>What&apos;s Included</span>
+                                    <span className={styles.detailValue}>{outfit.itemsIncluded.join(', ')}</span>
+                                </div>
                             </div>
                         )}
                     </div>

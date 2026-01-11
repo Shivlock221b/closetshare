@@ -373,26 +373,54 @@
 
 .detailsGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
 }
 
-.detailItem {
+.detailCard {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: #F8F9FA;
+    border: 1px solid #EBEBEB;
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+.detailCard:hover {
+    border-color: var(--color-coral);
+    background: #FFFAF9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.detailIconWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: white;
+    border-radius: 50%;
+    color: var(--color-coral);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .detailLabel {
-    font-size: 13px;
+    display: block;
+    font-size: 11px;
     color: #717171;
-    font-weight: 500;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    margin-bottom: 2px;
 }
 
 .detailValue {
-    font-size: 16px;
+    display: block;
+    font-size: 15px;
     color: #222222;
-    font-weight: 500;
+    font-weight: 600;
 }
